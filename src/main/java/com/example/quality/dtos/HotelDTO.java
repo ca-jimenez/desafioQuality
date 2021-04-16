@@ -1,5 +1,6 @@
 package com.example.quality.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,10 @@ public class HotelDTO {
     private String city;
     private String roomType;
     private Integer pricePerNight;
+
+//    @JsonFormat(pattern = "dd/MM/YYYY")
     private LocalDate availableFrom;
+//    @JsonFormat(pattern = "dd/MM/YYYY")
     private LocalDate availableTo;
     private Boolean reserved;
 

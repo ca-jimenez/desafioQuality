@@ -45,30 +45,9 @@ public class HotelServiceImpl implements HotelService {
 
         DateUtils.validateDateRange(fromDate, toDate);
 
-//        try {
-//            fromDate = LocalDate.parse(dateFrom, formatter);
-//            toDate = LocalDate.parse(dateTo, formatter);
-//        } catch (Exception e) {
-//
-//            throw new InvalidDateException("Invalid date format. Accepted format: DD/MM/YYYY");
-//        }
-
-//        if (toDate.isEqual(fromDate) || toDate.isBefore(fromDate)) {
-//            throw new InvalidDateException("dateTo must be greater than dateFrom");
-//        }
-
         String normalizedDestination = StringUtils.normalizeString(destination);
 
-//        Optional<HotelDTO> hotelByLocation = hotelRepository.getHotelList().stream()
-//                .filter(hotel -> StringUtils.normalizeString(hotel.getCity()).equals(normalizedDestination))
-//                .findAny();
-//
-//        if (hotelByLocation.isEmpty()) {
-//            throw new InvalidDestinationException("Destination not found");
-//        }
-
         validateDestination(normalizedDestination);
-
 
         return allAvailableHotels.stream()
                 .filter(hotel -> fromDate.isEqual(hotel.getAvailableFrom())

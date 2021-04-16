@@ -1,0 +1,24 @@
+[
+  {
+    "hotelId": 1,
+    "code": "CH-0002",
+    "name": "Cataratas Hotel",
+    "city": "Buenos Aires",
+    "roomType": "Single",
+    "pricePerNight": 6300,
+    "availableFrom": "2021-02-10",
+    "availableTo": "2021-03-20",
+    "reserved": false
+  },
+  {
+    "hotelId": 5,
+    "code": "HB-0003",
+    "name": "Hotel Bristol 3",
+    "city": "Buenos Aires",
+    "roomType": "Single",
+    "pricePerNight": 2435,
+    "availableFrom": "2021-02-10",
+    "availableTo": "2021-03-19",
+    "reserved": false
+  }
+]

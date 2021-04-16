@@ -1,12 +1,12 @@
-package com.example.quality.utils;
+package com.example.quality.handlers;
 
 import com.example.quality.exceptions.InvalidDateException;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public class DateUtils {
-
+public class DateHandler {
+    //ToDo change name and package?
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public static LocalDate parseDate(String date) throws InvalidDateException {
@@ -20,10 +20,10 @@ public class DateUtils {
         }
     }
 
-    public static void validateDateRange(LocalDate arrival, LocalDate departure) throws InvalidDateException {
-
-        if (departure.isEqual(arrival) || departure.isBefore(arrival)) {
-            throw new InvalidDateException("dateTo must be greater than dateFrom");
-        }
-    }
+//    public static void validateDateRange(LocalDate arrival, LocalDate departure) throws InvalidDateException {
+//
+//        if (departure.isEqual(arrival) || departure.isBefore(arrival)) {
+//            throw new InvalidDateException("dateTo must be greater than dateFrom");
+//        }
+//    }
 }

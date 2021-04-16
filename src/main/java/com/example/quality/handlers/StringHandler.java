@@ -1,7 +1,7 @@
-package com.example.quality.utils;
+package com.example.quality.handlers;
 
 
-public class StringUtils {
+public class StringHandler {
 
     //ToDo change name?
     public static String normalizeString(String text) {

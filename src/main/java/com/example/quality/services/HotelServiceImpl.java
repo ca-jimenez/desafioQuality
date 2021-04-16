@@ -5,15 +5,14 @@ import com.example.quality.dtos.HotelDTO;
 import com.example.quality.exceptions.InvalidDateException;
 import com.example.quality.exceptions.InvalidDestinationException;
 import com.example.quality.repositories.HotelRepository;
-import com.example.quality.utils.DateUtils;
-import com.example.quality.utils.StringUtils;
+import com.example.quality.handlers.DateHandler;
+import com.example.quality.handlers.StringHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.DoublePredicate;
 import java.util.stream.Collectors;
 
 
@@ -23,7 +22,9 @@ public class HotelServiceImpl implements HotelService {
     private final HotelRepository hotelRepository;
 
 //    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    //ToDo pasar filtros a repo?
 
+    @Autowired
     public HotelServiceImpl(HotelRepository hotelRepository) {
         this.hotelRepository = hotelRepository;
     }
@@ -40,21 +41,22 @@ public class HotelServiceImpl implements HotelService {
 
         List<HotelDTO> allAvailableHotels = getAvailableHotels();
 
-        LocalDate fromDate = DateUtils.parseDate(dateFrom);
-        LocalDate toDate = DateUtils.parseDate(dateTo);
+        LocalDate fromDate = DateHandler.parseDate(dateFrom);
+        LocalDate toDate = DateHandler.parseDate(dateTo);
 
-        DateUtils.validateDateRange(fromDate, toDate);
+//        DateUtils.validateDateRange(fromDate, toDate);
+        if (fromDate.compareTo(toDate) >= 0) {
+            throw new InvalidDateException("dateTo must be greater than dateFrom");
+        }
 
-        String normalizedDestination = StringUtils.normalizeString(destination);
+        String normalizedDestination = StringHandler.normalizeString(destination);
 
         validateDestination(normalizedDestination);
 
         return allAvailableHotels.stream()
-                .filter(hotel -> fromDate.isEqual(hotel.getAvailableFrom())
-                        || fromDate.isAfter(hotel.getAvailableFrom()))
-                .filter(hotel -> toDate.isEqual(hotel.getAvailableTo())
-                        || toDate.isBefore(hotel.getAvailableTo()))
-                .filter(hotel -> StringUtils.normalizeString(hotel.getCity())
+                .filter(hotel -> hotel.getAvailableFrom().compareTo(fromDate) <= 0)
+                .filter(hotel -> hotel.getAvailableTo().compareTo(toDate) >= 0)
+                .filter(hotel -> StringHandler.normalizeString(hotel.getCity())
                         .equals(normalizedDestination))
                 .collect(Collectors.toList());
     }
@@ -62,7 +64,7 @@ public class HotelServiceImpl implements HotelService {
     private void validateDestination(String destination) throws InvalidDestinationException {
 
         Optional<HotelDTO> hotelByLocation = hotelRepository.getHotelList().stream()
-                .filter(hotel -> StringUtils.normalizeString(hotel.getCity()).equals(destination))
+                .filter(hotel -> StringHandler.normalizeString(hotel.getCity()).equals(destination))
                 .findAny();
 
         if (hotelByLocation.isEmpty()) {
@@ -70,22 +72,10 @@ public class HotelServiceImpl implements HotelService {
         }
     }
 
-//    private final ArticleRepository articleRepository;
-//    private List<ShoppingCartDTO> shoppingCartsList = new ArrayList<>();
-//
+
 //    private final AtomicLong ticketIdCounter = new AtomicLong(1);
-//    private final AtomicLong shoppingCartIdCounter = new AtomicLong(1);
-//
-//    @Autowired
-//    public ServiceImpl(ArticleRepository articleRepository) {
-//        this.articleRepository = articleRepository;
-//    }
-//
-//    @Override
-//    public List<ArticleDTO> getUnfilteredArticles() {
-//        return articleRepository.getArticleList();
-//    }
-//
+
+
 //    @Override
 //    public List<ArticleDTO> getArticles(Map<String, String> allFilters) throws Exception {
 //

@@ -1,0 +1,224 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: FlightRepositoryImpl</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">com.example.quality.repositories</a> ]
+</div>
+
+<h1>Coverage Summary for Class: FlightRepositoryImpl (com.example.quality.repositories)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FlightRepositoryImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    80%
+  </span>
+  <span class="absValue">
+    (8/ 10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    71,4%
+  </span>
+  <span class="absValue">
+    (40/ 56)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;package com.example.quality.repositories;
+<i>2</i>&nbsp;
+<i>3</i>&nbsp;
+<i>4</i>&nbsp;import com.example.quality.dtos.FlightDTO;
+<i>5</i>&nbsp;import com.example.quality.utils.StringUtil;
+<i>6</i>&nbsp;import org.springframework.beans.factory.annotation.Value;
+<i>7</i>&nbsp;import org.springframework.core.io.ClassPathResource;
+<i>8</i>&nbsp;import org.springframework.core.io.Resource;
+<i>9</i>&nbsp;import org.springframework.stereotype.Repository;
+<i>10</i>&nbsp;
+<i>11</i>&nbsp;import java.io.BufferedReader;
+<i>12</i>&nbsp;import java.io.FileWriter;
+<i>13</i>&nbsp;import java.io.InputStreamReader;
+<i>14</i>&nbsp;import java.time.LocalDate;
+<i>15</i>&nbsp;import java.time.format.DateTimeFormatter;
+<i>16</i>&nbsp;import java.util.ArrayList;
+<i>17</i>&nbsp;import java.util.List;
+<i>18</i>&nbsp;import java.util.concurrent.atomic.AtomicLong;
+<i>19</i>&nbsp;import java.util.stream.Collectors;
+<i>20</i>&nbsp;
+<i>21</i>&nbsp;@Repository
+<i>22</i>&nbsp;public class FlightRepositoryImpl implements FlightRepository {
+<i>23</i>&nbsp;
+<b class="fc"><i>24</i>&nbsp;    private final AtomicLong idCounter = new AtomicLong(1);</b>
+<i>25</i>&nbsp;
+<i>26</i>&nbsp;    private List&lt;FlightDTO&gt; flightList;
+<i>27</i>&nbsp;
+<b class="fc"><i>28</i>&nbsp;    public FlightRepositoryImpl(@Value(&quot;${flights_path:flights.csv}&quot;) String path) {</b>
+<i>29</i>&nbsp;
+<b class="fc"><i>30</i>&nbsp;        flightList = loadDatabase(path);</b>
+<b class="fc"><i>31</i>&nbsp;    }</b>
+<i>32</i>&nbsp;
+<i>33</i>&nbsp;    @Override
+<i>34</i>&nbsp;    public List&lt;FlightDTO&gt; getFlightList() {
+<b class="fc"><i>35</i>&nbsp;        return flightList;</b>
+<i>36</i>&nbsp;    }
+<i>37</i>&nbsp;
+<i>38</i>&nbsp;    @Override
+<i>39</i>&nbsp;    public List&lt;FlightDTO&gt; getAvailableFlightsList() {
+<b class="fc"><i>40</i>&nbsp;        return flightList.stream()</b>
+<b class="fc"><i>41</i>&nbsp;                .filter(flight -&gt; flight.getAvailableSeats() &gt; 0)</b>
+<b class="fc"><i>42</i>&nbsp;                .collect(Collectors.toList());</b>
+<i>43</i>&nbsp;    }
+<i>44</i>&nbsp;
+<i>45</i>&nbsp;    @Override
+<i>46</i>&nbsp;    public FlightDTO getFlightByCode(String flightNumber) {
+<b class="fc"><i>47</i>&nbsp;        return flightList.stream()</b>
+<b class="fc"><i>48</i>&nbsp;                .filter(flight -&gt; flight.getFlightNumber().equalsIgnoreCase(flightNumber))</b>
+<b class="fc"><i>49</i>&nbsp;                .findFirst().orElse(null);</b>
+<i>50</i>&nbsp;    }
+<i>51</i>&nbsp;
+<i>52</i>&nbsp;    @Override
+<i>53</i>&nbsp;    public List&lt;FlightDTO&gt; filterAvailableFlightsByDateAndLocation(LocalDate fromDate, LocalDate toDate, String origin, String destination) {
+<b class="fc"><i>54</i>&nbsp;        return getAvailableFlightsList().stream()</b>
+<b class="fc"><i>55</i>&nbsp;                .filter(flight -&gt; flight.getDateFrom().compareTo(fromDate) &lt;= 0</b>
+<b class="fc"><i>56</i>&nbsp;                        &amp;&amp; flight.getDateTo().compareTo(toDate) &gt;= 0)</b>
+<b class="fc"><i>57</i>&nbsp;                .filter(flight -&gt; StringUtil.normalizeString(flight.getOrigin()).equals(origin)</b>
+<b class="fc"><i>58</i>&nbsp;                        &amp;&amp; StringUtil.normalizeString(flight.getDestination()).equals(destination))</b>
+<b class="fc"><i>59</i>&nbsp;                .collect(Collectors.toList());</b>
+<i>60</i>&nbsp;    }
+<i>61</i>&nbsp;
+<i>62</i>&nbsp;    @Override
+<i>63</i>&nbsp;    public void reserveFlight(String flightNumber, Integer seats) {
+<i>64</i>&nbsp;
+<b class="nc"><i>65</i>&nbsp;        Integer availableSeats = getFlightByCode(flightNumber).getAvailableSeats();</b>
+<i>66</i>&nbsp;
+<b class="nc"><i>67</i>&nbsp;        getFlightByCode(flightNumber).setAvailableSeats(availableSeats - seats);</b>
+<i>68</i>&nbsp;
+<b class="nc"><i>69</i>&nbsp;        updateDatabase();</b>
+<b class="nc"><i>70</i>&nbsp;    }</b>
+<i>71</i>&nbsp;
+<i>72</i>&nbsp;    //Overwrite csv file with updated data
+<i>73</i>&nbsp;    private void updateDatabase() {
+<i>74</i>&nbsp;
+<b class="nc"><i>75</i>&nbsp;        String recordAsCsv = flightList.stream()</b>
+<b class="nc"><i>76</i>&nbsp;                .map(StringUtil::flightToCsvRow)</b>
+<b class="nc"><i>77</i>&nbsp;                .collect(Collectors.joining(System.getProperty(&quot;line.separator&quot;)));</b>
+<i>78</i>&nbsp;
+<i>79</i>&nbsp;        try {
+<i>80</i>&nbsp;            // File path
+<b class="nc"><i>81</i>&nbsp;            FileWriter writer = new FileWriter(&quot;src/main/resources/flights.csv&quot;);</b>
+<i>82</i>&nbsp;
+<i>83</i>&nbsp;
+<i>84</i>&nbsp;            // Add headers
+<b class="nc"><i>85</i>&nbsp;            writer.append(&quot;flightNumber,origin,destination,seatType,pricePerPerson,dateFrom,dateTo,availableSeats\n&quot;);</b>
+<i>86</i>&nbsp;
+<i>87</i>&nbsp;            // Add content
+<b class="nc"><i>88</i>&nbsp;            writer.append(recordAsCsv);</b>
+<b class="nc"><i>89</i>&nbsp;            writer.flush();</b>
+<b class="nc"><i>90</i>&nbsp;            writer.close();</b>
+<b class="nc"><i>91</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i>92</i>&nbsp;            e.printStackTrace();</b>
+<b class="nc"><i>93</i>&nbsp;        }</b>
+<b class="nc"><i>94</i>&nbsp;    }</b>
+<i>95</i>&nbsp;
+<i>96</i>&nbsp;    // Parse csv file data
+<i>97</i>&nbsp;    private List&lt;FlightDTO&gt; loadDatabase(String path) {
+<i>98</i>&nbsp;
+<b class="fc"><i>99</i>&nbsp;        List&lt;FlightDTO&gt; records = new ArrayList&lt;&gt;();</b>
+<i>100</i>&nbsp;
+<i>101</i>&nbsp;        try {
+<i>102</i>&nbsp;
+<b class="fc"><i>103</i>&nbsp;            Resource resource = new ClassPathResource(path);</b>
+<b class="fc"><i>104</i>&nbsp;            BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));</b>
+<i>105</i>&nbsp;
+<i>106</i>&nbsp;            String row;
+<i>107</i>&nbsp;
+<i>108</i>&nbsp;            // Skip headers
+<b class="fc"><i>109</i>&nbsp;            reader.readLine();</b>
+<i>110</i>&nbsp;
+<b class="fc"><i>111</i>&nbsp;            while ((row = reader.readLine()) != null) {</b>
+<i>112</i>&nbsp;
+<b class="fc"><i>113</i>&nbsp;                String[] data = row.split(&quot;,&quot;);</b>
+<i>114</i>&nbsp;
+<b class="fc"><i>115</i>&nbsp;                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;dd/MM/yyyy&quot;);</b>
+<i>116</i>&nbsp;
+<b class="fc"><i>117</i>&nbsp;                String flightNumber = data[0];</b>
+<b class="fc"><i>118</i>&nbsp;                String origin = data[1];</b>
+<b class="fc"><i>119</i>&nbsp;                String destination = data[2];</b>
+<b class="fc"><i>120</i>&nbsp;                String seatType = data[3];</b>
+<i>121</i>&nbsp;
+<b class="fc"><i>122</i>&nbsp;                Integer price = Integer.parseInt(data[4]</b>
+<b class="fc"><i>123</i>&nbsp;                        .replace(&quot;$&quot;, &quot;&quot;));</b>
+<i>124</i>&nbsp;
+<b class="fc"><i>125</i>&nbsp;                LocalDate fromDate = LocalDate.parse(data[5], formatter);</b>
+<b class="fc"><i>126</i>&nbsp;                LocalDate toDate = LocalDate.parse(data[6], formatter);</b>
+<i>127</i>&nbsp;
+<b class="fc"><i>128</i>&nbsp;                Integer availableSeats = Integer.parseInt(data[7]);</b>
+<i>129</i>&nbsp;
+<i>130</i>&nbsp;
+<b class="fc"><i>131</i>&nbsp;                records.add(new FlightDTO(idCounter.getAndIncrement(), flightNumber, origin, destination, seatType, price, fromDate, toDate, availableSeats));</b>
+<b class="fc"><i>132</i>&nbsp;            }</b>
+<b class="fc"><i>133</i>&nbsp;            reader.close();</b>
+<i>134</i>&nbsp;
+<b class="fc"><i>135</i>&nbsp;        } catch (Exception e) {</b>
+<b class="fc"><i>136</i>&nbsp;            e.printStackTrace();</b>
+<b class="fc"><i>137</i>&nbsp;        }</b>
+<i>138</i>&nbsp;
+<b class="fc"><i>139</i>&nbsp;        return records;</b>
+<i>140</i>&nbsp;    }
+<i>141</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2021-04-20 09:31</div>
+</div>
+</body>
+</html>

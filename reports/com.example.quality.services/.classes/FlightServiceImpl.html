@@ -1,0 +1,257 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: FlightServiceImpl</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">com.example.quality.services</a> ]
+</div>
+
+<h1>Coverage Summary for Class: FlightServiceImpl (com.example.quality.services)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FlightServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (10/ 10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    93,1%
+  </span>
+  <span class="absValue">
+    (67/ 72)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;package com.example.quality.services;
+<i>2</i>&nbsp;
+<i>3</i>&nbsp;
+<i>4</i>&nbsp;import com.example.quality.dtos.*;
+<i>5</i>&nbsp;import com.example.quality.exceptions.*;
+<i>6</i>&nbsp;import com.example.quality.repositories.FlightRepository;
+<i>7</i>&nbsp;import com.example.quality.utils.BookingUtil;
+<i>8</i>&nbsp;import com.example.quality.utils.DateUtil;
+<i>9</i>&nbsp;import com.example.quality.utils.PersonValidationUtil;
+<i>10</i>&nbsp;import com.example.quality.utils.StringUtil;
+<i>11</i>&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+<i>12</i>&nbsp;import org.springframework.stereotype.Service;
+<i>13</i>&nbsp;
+<i>14</i>&nbsp;import java.time.LocalDate;
+<i>15</i>&nbsp;import java.util.List;
+<i>16</i>&nbsp;import java.util.Map;
+<i>17</i>&nbsp;import java.util.Optional;
+<i>18</i>&nbsp;
+<i>19</i>&nbsp;
+<i>20</i>&nbsp;@Service
+<i>21</i>&nbsp;public class FlightServiceImpl implements FlightService {
+<i>22</i>&nbsp;
+<i>23</i>&nbsp;    private final FlightRepository flightRepository;
+<i>24</i>&nbsp;
+<i>25</i>&nbsp;    @Autowired
+<b class="fc"><i>26</i>&nbsp;    public FlightServiceImpl(FlightRepository flightRepository) {</b>
+<b class="fc"><i>27</i>&nbsp;        this.flightRepository = flightRepository;</b>
+<b class="fc"><i>28</i>&nbsp;    }</b>
+<i>29</i>&nbsp;
+<i>30</i>&nbsp;
+<i>31</i>&nbsp;    @Override
+<i>32</i>&nbsp;    public List&lt;FlightDTO&gt; getAvailableFlights(Map&lt;String, String&gt; params) throws Exception {
+<i>33</i>&nbsp;
+<b class="fc"><i>34</i>&nbsp;        List&lt;FlightDTO&gt; allAvailableHotels = flightRepository.getAvailableFlightsList();</b>
+<i>35</i>&nbsp;
+<b class="fc"><i>36</i>&nbsp;        if (params.size() &lt; 1) {</b>
+<i>37</i>&nbsp;
+<b class="fc"><i>38</i>&nbsp;            return allAvailableHotels;</b>
+<i>39</i>&nbsp;
+<b class="fc"><i>40</i>&nbsp;        } else if (params.size() == 4) {</b>
+<i>41</i>&nbsp;
+<b class="fc"><i>42</i>&nbsp;            validateRequiredFilters(params);</b>
+<b class="fc"><i>43</i>&nbsp;            return getFilteredFlights(params);</b>
+<i>44</i>&nbsp;
+<i>45</i>&nbsp;        } else {
+<b class="fc"><i>46</i>&nbsp;            throw new InvalidFilterException(&quot;Accepted filters are &#39;dateFrom&#39;, &#39;dateTo&#39;, &#39;origin&#39; and &#39;destination&#39;&quot;);</b>
+<i>47</i>&nbsp;        }
+<i>48</i>&nbsp;    }
+<i>49</i>&nbsp;
+<i>50</i>&nbsp;    @Override
+<i>51</i>&nbsp;    public FlightReservationResponseDTO bookAFlight(FlightReservationRequestDTO request) throws Exception {
+<i>52</i>&nbsp;
+<b class="fc"><i>53</i>&nbsp;        PersonValidationUtil.validateEmail(request.getUsername());</b>
+<i>54</i>&nbsp;
+<b class="fc"><i>55</i>&nbsp;        FlightReservationDTO reservation = request.getFlightReservation();</b>
+<b class="fc"><i>56</i>&nbsp;        FlightDTO flight = flightRepository.getFlightByCode(reservation.getFlightNumber());</b>
+<i>57</i>&nbsp;
+<b class="fc"><i>58</i>&nbsp;        validateFlight(flight, reservation);</b>
+<b class="fc"><i>59</i>&nbsp;        validatePeopleAmount(reservation.getSeats(), reservation.getPeople().size());</b>
+<b class="fc"><i>60</i>&nbsp;        PersonValidationUtil.validatePeopleData(reservation.getPeople());</b>
+<b class="fc"><i>61</i>&nbsp;        Double amount = calculateFlightBaseAmount(flight, reservation);</b>
+<b class="fc"><i>62</i>&nbsp;        Integer interest = BookingUtil.getInterestPercentage(reservation.getPaymentMethod());</b>
+<b class="fc"><i>63</i>&nbsp;        Double amountWithInterests = BookingUtil.calculateTotalWithInterests(amount, interest);</b>
+<i>64</i>&nbsp;
+<b class="fc"><i>65</i>&nbsp;        flightRepository.reserveFlight(reservation.getFlightNumber(), reservation.getSeats());</b>
+<i>66</i>&nbsp;
+<b class="fc"><i>67</i>&nbsp;        return new FlightReservationResponseDTO(</b>
+<b class="fc"><i>68</i>&nbsp;                request.getUsername(),</b>
+<i>69</i>&nbsp;                amount,
+<i>70</i>&nbsp;                interest,
+<i>71</i>&nbsp;                amountWithInterests,
+<i>72</i>&nbsp;                reservation,
+<b class="fc"><i>73</i>&nbsp;                new StatusDTO(200, &quot;Flight booked successfully&quot;)</b>
+<i>74</i>&nbsp;        );
+<i>75</i>&nbsp;    }
+<i>76</i>&nbsp;
+<i>77</i>&nbsp;
+<i>78</i>&nbsp;    private Double calculateFlightBaseAmount(FlightDTO flight, FlightReservationDTO reservation) {
+<i>79</i>&nbsp;
+<b class="fc"><i>80</i>&nbsp;        return flight.getPricePerPerson() * (double) reservation.getSeats();</b>
+<i>81</i>&nbsp;    }
+<i>82</i>&nbsp;
+<i>83</i>&nbsp;
+<i>84</i>&nbsp;    private void validateFlight(FlightDTO flight, FlightReservationDTO reservation) throws Exception {
+<i>85</i>&nbsp;
+<b class="fc"><i>86</i>&nbsp;        if (flight == null) {</b>
+<b class="fc"><i>87</i>&nbsp;            throw new InvalidFlightException(&quot;Flight with code &quot; + reservation.getFlightNumber() + &quot; not found&quot;);</b>
+<i>88</i>&nbsp;        }
+<i>89</i>&nbsp;
+<b class="fc"><i>90</i>&nbsp;        if (flight.getAvailableSeats() &lt; reservation.getSeats()) {</b>
+<b class="nc"><i>91</i>&nbsp;            throw new InvalidBookingException(&quot;Not enough seats available&quot;);</b>
+<i>92</i>&nbsp;        }
+<i>93</i>&nbsp;
+<b class="fc"><i>94</i>&nbsp;        if (!flight.getSeatType().equalsIgnoreCase(reservation.getSeatType())) {</b>
+<b class="nc"><i>95</i>&nbsp;            throw new InvalidFlightException(&quot;Invalid seat type for flight &quot; + reservation.getFlightNumber());</b>
+<i>96</i>&nbsp;        }
+<i>97</i>&nbsp;
+<b class="fc"><i>98</i>&nbsp;        String normalizedOrigin = StringUtil.normalizeString(reservation.getOrigin());</b>
+<b class="fc"><i>99</i>&nbsp;        String normalizedDestination = StringUtil.normalizeString(reservation.getDestination());</b>
+<i>100</i>&nbsp;
+<b class="fc"><i>101</i>&nbsp;        if (!StringUtil.normalizeString(flight.getOrigin()).equals(normalizedOrigin)) {</b>
+<b class="nc"><i>102</i>&nbsp;            throw new InvalidFlightException(&quot;Invalid origin for flight &quot; + reservation.getFlightNumber());</b>
+<i>103</i>&nbsp;        }
+<i>104</i>&nbsp;
+<b class="fc"><i>105</i>&nbsp;        if (!StringUtil.normalizeString(flight.getDestination()).equals(normalizedDestination)) {</b>
+<b class="fc"><i>106</i>&nbsp;            throw new InvalidFlightException(&quot;Invalid destination for flight &quot; + reservation.getFlightNumber());</b>
+<i>107</i>&nbsp;        }
+<i>108</i>&nbsp;
+<b class="fc"><i>109</i>&nbsp;        LocalDate dateFrom = DateUtil.parseDate(reservation.getDateFrom());</b>
+<b class="fc"><i>110</i>&nbsp;        LocalDate dateTo = DateUtil.parseDate(reservation.getDateTo());</b>
+<i>111</i>&nbsp;
+<b class="fc"><i>112</i>&nbsp;        DateUtil.validateDateRange(dateFrom, dateTo);</b>
+<i>113</i>&nbsp;
+<b class="fc"><i>114</i>&nbsp;        if (flight.getDateFrom().compareTo(dateFrom) &gt; 0</b>
+<b class="fc"><i>115</i>&nbsp;                || flight.getDateTo().compareTo(dateTo) &lt; 0) {</b>
+<b class="fc"><i>116</i>&nbsp;            throw new InvalidFlightException(&quot;dates not available for flight &quot; + reservation.getFlightNumber());</b>
+<i>117</i>&nbsp;        }
+<b class="fc"><i>118</i>&nbsp;    }</b>
+<i>119</i>&nbsp;
+<i>120</i>&nbsp;    private void validatePeopleAmount(Integer seats, Integer peopleListSize) throws InvalidBookingException {
+<i>121</i>&nbsp;
+<b class="fc"><i>122</i>&nbsp;        if (!seats.equals(peopleListSize)) {</b>
+<b class="nc"><i>123</i>&nbsp;            throw new InvalidBookingException(&quot;Seats don&#39;t match amount of people&quot;);</b>
+<i>124</i>&nbsp;        }
+<b class="fc"><i>125</i>&nbsp;    }</b>
+<i>126</i>&nbsp;
+<i>127</i>&nbsp;    private List&lt;FlightDTO&gt; getFilteredFlights(Map&lt;String, String&gt; filters) throws Exception {
+<i>128</i>&nbsp;
+<b class="fc"><i>129</i>&nbsp;        LocalDate fromDate = DateUtil.parseDate(filters.get(&quot;dateFrom&quot;));</b>
+<b class="fc"><i>130</i>&nbsp;        LocalDate toDate = DateUtil.parseDate(filters.get(&quot;dateTo&quot;));</b>
+<i>131</i>&nbsp;
+<b class="fc"><i>132</i>&nbsp;        DateUtil.validateDateRange(fromDate, toDate);</b>
+<i>133</i>&nbsp;
+<b class="fc"><i>134</i>&nbsp;        String normalizedOrigin = StringUtil.normalizeString(filters.get(&quot;origin&quot;));</b>
+<b class="fc"><i>135</i>&nbsp;        String normalizedDestination = StringUtil.normalizeString(filters.get(&quot;destination&quot;));</b>
+<i>136</i>&nbsp;
+<b class="fc"><i>137</i>&nbsp;        validateOrigin(normalizedOrigin);</b>
+<b class="fc"><i>138</i>&nbsp;        validateDestination(normalizedDestination);</b>
+<i>139</i>&nbsp;
+<b class="fc"><i>140</i>&nbsp;        return flightRepository.filterAvailableFlightsByDateAndLocation(fromDate, toDate, normalizedOrigin, normalizedDestination);</b>
+<i>141</i>&nbsp;    }
+<i>142</i>&nbsp;
+<i>143</i>&nbsp;    private void validateOrigin(String origin) throws InvalidLocationException {
+<i>144</i>&nbsp;
+<b class="fc"><i>145</i>&nbsp;        Optional&lt;FlightDTO&gt; hotelByLocation = flightRepository.getFlightList().stream()</b>
+<b class="fc"><i>146</i>&nbsp;                .filter(flight -&gt; StringUtil.normalizeString(flight.getOrigin()).equals(origin))</b>
+<b class="fc"><i>147</i>&nbsp;                .findAny();</b>
+<i>148</i>&nbsp;
+<b class="fc"><i>149</i>&nbsp;        if (hotelByLocation.isEmpty()) {</b>
+<b class="nc"><i>150</i>&nbsp;            throw new InvalidLocationException(&quot;Origin not found&quot;);</b>
+<i>151</i>&nbsp;        }
+<b class="fc"><i>152</i>&nbsp;    }</b>
+<i>153</i>&nbsp;
+<i>154</i>&nbsp;    private void validateDestination(String destination) throws InvalidLocationException {
+<i>155</i>&nbsp;
+<b class="fc"><i>156</i>&nbsp;        Optional&lt;FlightDTO&gt; hotelByLocation = flightRepository.getFlightList().stream()</b>
+<b class="fc"><i>157</i>&nbsp;                .filter(flight -&gt; StringUtil.normalizeString(flight.getDestination()).equals(destination))</b>
+<b class="fc"><i>158</i>&nbsp;                .findAny();</b>
+<i>159</i>&nbsp;
+<b class="fc"><i>160</i>&nbsp;        if (hotelByLocation.isEmpty()) {</b>
+<b class="fc"><i>161</i>&nbsp;            throw new InvalidLocationException(&quot;Destination not found&quot;);</b>
+<i>162</i>&nbsp;        }
+<b class="fc"><i>163</i>&nbsp;    }</b>
+<i>164</i>&nbsp;
+<i>165</i>&nbsp;    private void validateRequiredFilters(Map&lt;String, String&gt; filters) throws InvalidFilterException {
+<i>166</i>&nbsp;
+<b class="fc"><i>167</i>&nbsp;        if (filters.get(&quot;dateFrom&quot;) == null</b>
+<b class="fc"><i>168</i>&nbsp;                || filters.get(&quot;dateTo&quot;) == null</b>
+<b class="fc"><i>169</i>&nbsp;                || filters.get(&quot;origin&quot;) == null</b>
+<b class="fc"><i>170</i>&nbsp;                || filters.get(&quot;destination&quot;) == null) {</b>
+<b class="fc"><i>171</i>&nbsp;            throw new InvalidFilterException(&quot;Request with filters must include &#39;dateFrom&#39;, &#39;dateTo&#39;, &#39;origin&#39; and &#39;destination&#39;&quot;);</b>
+<i>172</i>&nbsp;        }
+<b class="fc"><i>173</i>&nbsp;    }</b>
+<i>174</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2021-04-20 09:31</div>
+</div>
+</body>
+</html>

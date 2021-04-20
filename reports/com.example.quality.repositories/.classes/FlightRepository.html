@@ -1,0 +1,76 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: FlightRepository</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">com.example.quality.repositories</a> ]
+</div>
+
+<h1>Coverage Summary for Class: FlightRepository (com.example.quality.repositories)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+</tr>
+  <tr>
+    <td class="name">FlightRepository$MockitoMock$1288244543</td>
+  </tr>
+  <tr>
+    <td class="name">FlightRepository$MockitoMock$1288244543$auxiliary$2E5rzCpB</td>
+  </tr>
+  <tr>
+    <td class="name">FlightRepository$MockitoMock$1288244543$auxiliary$xk0q7z1d</td>
+  </tr>
+<tr>
+  <td class="name"><strong>total</strong></td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;package com.example.quality.repositories;
+<i>2</i>&nbsp;
+<i>3</i>&nbsp;
+<i>4</i>&nbsp;import com.example.quality.dtos.FlightDTO;
+<i>5</i>&nbsp;
+<i>6</i>&nbsp;import java.time.LocalDate;
+<i>7</i>&nbsp;import java.util.List;
+<i>8</i>&nbsp;
+<i>9</i>&nbsp;public interface FlightRepository {
+<i>10</i>&nbsp;
+<i>11</i>&nbsp;    List&lt;FlightDTO&gt; getFlightList();
+<i>12</i>&nbsp;
+<i>13</i>&nbsp;    List&lt;FlightDTO&gt; getAvailableFlightsList();
+<i>14</i>&nbsp;
+<i>15</i>&nbsp;    FlightDTO getFlightByCode(String flightCode);
+<i>16</i>&nbsp;
+<i>17</i>&nbsp;    List&lt;FlightDTO&gt; filterAvailableFlightsByDateAndLocation(LocalDate fromDate, LocalDate toDate, String origin, String destination);
+<i>18</i>&nbsp;
+<i>19</i>&nbsp;    void reserveFlight(String flightNumber, Integer seats);
+<i>20</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2021-04-20 09:31</div>
+</div>
+</body>
+</html>

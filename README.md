@@ -3,7 +3,8 @@
 - Path: /api/v1`
 
 [comment]: <> (- [./target/coverage-reports/index.html]&#40;Coverage Report&#41;)
-- [Coverage Report](./target/coverage-reports/index.html)
+- [Coverage Report](./reports/index.html)
+
 ##Endpoints
 
 ### /hotels

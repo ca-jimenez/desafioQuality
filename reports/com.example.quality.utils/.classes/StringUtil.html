@@ -1,0 +1,133 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: StringUtil</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">com.example.quality.utils</a> ]
+</div>
+
+<h1>Coverage Summary for Class: StringUtil (com.example.quality.utils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">StringUtil</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    80%
+  </span>
+  <span class="absValue">
+    (4/ 5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    96,2%
+  </span>
+  <span class="absValue">
+    (25/ 26)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;package com.example.quality.utils;
+<i>2</i>&nbsp;
+<i>3</i>&nbsp;
+<i>4</i>&nbsp;import com.example.quality.dtos.FlightDTO;
+<i>5</i>&nbsp;import com.example.quality.dtos.HotelDTO;
+<i>6</i>&nbsp;
+<b class="nc"><i>7</i>&nbsp;public class StringUtil {</b>
+<i>8</i>&nbsp;
+<i>9</i>&nbsp;    public static String normalizeString(String text) {
+<i>10</i>&nbsp;
+<b class="fc"><i>11</i>&nbsp;        return text.toLowerCase().toLowerCase()</b>
+<b class="fc"><i>12</i>&nbsp;                .replace(&quot;á&quot;, &quot;a&quot;)</b>
+<b class="fc"><i>13</i>&nbsp;                .replace(&quot;é&quot;, &quot;e&quot;)</b>
+<b class="fc"><i>14</i>&nbsp;                .replace(&quot;í&quot;, &quot;i&quot;)</b>
+<b class="fc"><i>15</i>&nbsp;                .replace(&quot;ó&quot;, &quot;o&quot;)</b>
+<b class="fc"><i>16</i>&nbsp;                .replace(&quot;ú&quot;, &quot;u&quot;);</b>
+<i>17</i>&nbsp;    }
+<i>18</i>&nbsp;
+<i>19</i>&nbsp;    public static String formatPrice(Integer price) {
+<b class="fc"><i>20</i>&nbsp;        return &quot;$&quot; + price;</b>
+<i>21</i>&nbsp;    }
+<i>22</i>&nbsp;
+<i>23</i>&nbsp;    public static String hotelToCsvRow(HotelDTO hotel) {
+<i>24</i>&nbsp;
+<b class="fc"><i>25</i>&nbsp;        return String.join(&quot;,&quot;,</b>
+<b class="fc"><i>26</i>&nbsp;                hotel.getCode(),</b>
+<b class="fc"><i>27</i>&nbsp;                hotel.getName(),</b>
+<b class="fc"><i>28</i>&nbsp;                hotel.getCity(),</b>
+<b class="fc"><i>29</i>&nbsp;                hotel.getRoomType(),</b>
+<b class="fc"><i>30</i>&nbsp;                formatPrice(hotel.getPricePerNight()),</b>
+<b class="fc"><i>31</i>&nbsp;                DateUtil.formatDateToString(hotel.getAvailableFrom()),</b>
+<b class="fc"><i>32</i>&nbsp;                DateUtil.formatDateToString(hotel.getAvailableTo()),</b>
+<b class="fc"><i>33</i>&nbsp;                hotel.getReserved() ? &quot;SI&quot; : &quot;NO&quot;</b>
+<i>34</i>&nbsp;        );
+<i>35</i>&nbsp;    }
+<i>36</i>&nbsp;
+<i>37</i>&nbsp;    public static String flightToCsvRow(FlightDTO flight) {
+<i>38</i>&nbsp;
+<b class="fc"><i>39</i>&nbsp;        return String.join(&quot;,&quot;,</b>
+<b class="fc"><i>40</i>&nbsp;                flight.getFlightNumber(),</b>
+<b class="fc"><i>41</i>&nbsp;                flight.getOrigin(),</b>
+<b class="fc"><i>42</i>&nbsp;                flight.getDestination(),</b>
+<b class="fc"><i>43</i>&nbsp;                flight.getSeatType(),</b>
+<b class="fc"><i>44</i>&nbsp;                formatPrice(flight.getPricePerPerson()),</b>
+<b class="fc"><i>45</i>&nbsp;                DateUtil.formatDateToString(flight.getDateFrom()),</b>
+<b class="fc"><i>46</i>&nbsp;                DateUtil.formatDateToString(flight.getDateTo()),</b>
+<b class="fc"><i>47</i>&nbsp;                flight.getAvailableSeats().toString()</b>
+<i>48</i>&nbsp;        );
+<i>49</i>&nbsp;    }
+<i>50</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2021-04-20 09:31</div>
+</div>
+</body>
+</html>

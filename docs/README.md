@@ -1,10 +1,12 @@
 # desafioQuality
 
 - Path: /api/v1
-- [Coverage Report HTML](./reports/index.html)
+- [Coverage Report HTML](../reports/index.html)
 
 
-##Endpoints
+## Endpoints
+
+For request/response format details refer to the [documentation](./docs.yaml)
 
 ### /hotels
 
@@ -17,6 +19,11 @@
       - Dates must not be the same or overlap
       - There has to be at least one hotel with the specified `destination` (reserved or not)
 
+Example request:
+
+```
+/api/v1/hotels?dateTo=19/02/2021&destination=buenos aires&dateFrom=10/02/2021
+```
 
 ### /booking (Hotel Booking)
 
@@ -76,6 +83,12 @@ Example request body:
     - Dates must not be the same or overlap
     - There has to be at least one flight with the specified `origin` (available or not)
     - There has to be at least one flight with the specified `destination` (reserved or not)
+
+Example request:
+
+```
+/api/v1/flights?dateTo=20/02/2021&dateFrom=19/02/2021&origin=puerto iguazú&destination=bogota
+```
 
 ### /flight-reservation (Flight Booking)
 

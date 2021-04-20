@@ -1,0 +1,420 @@
+openapi: 3.0.0
+
+info:
+  title: Desafío Quality
+  description: "Path: /api/v1"
+  version: 1.0.0
+
+  
+tags:
+- name: "Hotels"
+  description: "Operations about hotels"
+- name: "Flights"
+  description: "Operations about flights"
+ 
+paths:
+
+  /hotels:
+  
+    get:
+      tags:
+        - "Hotels"
+      summary: "Returns a list of hotels."
+      parameters:
+        - in: query
+          name: dateFrom
+          schema:
+            type: string
+        - in: query
+          name: dateTo
+          schema:
+            type: string
+        - in: query
+          name: destination
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "JSON array of hotels"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/hotelData'
+        '400':
+          description: "Invalid parameters"
+        '500':
+          $ref: '#/components/responses/serverError'
+          
+   
+  /flights:
+  
+    get:
+      tags:
+        - "Flights"
+      summary: "Returns a list of flights."
+      parameters:
+        - in: query
+          name: dateFrom
+          schema:
+            type: string
+        - in: query
+          name: dateTo
+          schema:
+            type: string
+        - in: query
+          name: origin
+          schema:
+            type: string
+        - in: query
+          name: destination
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "JSON array of flights"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/flightData'
+        '400':
+          description: "Invalid parameters"
+        '500':
+          $ref: '#/components/responses/serverError'
+          
+  /booking:
+          
+    post:
+      tags:
+        - "Hotels"
+      summary: Books a hotel.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                booking:
+                  type: object
+                  properties:
+                    dateFrom:
+                      type: string
+                    dateTo:
+                      type: string
+                    destination:
+                      type: string
+                    hotelCode:
+                      type: string
+                    peopleAmount:
+                      type: integer
+                    roomType:
+                      type: string
+                      enum:
+                        - single
+                        - double
+                        - triple
+                        - multiple
+                    people:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          dni:
+                            type: string
+                          name:
+                            type: string
+                          lastname:
+                            type: string
+                          birthDate:
+                            type: string
+                          mail:
+                            type: string
+                    paymentMethod:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          enum:
+                          - debit
+                          - credit
+                        number:
+                          type: string
+                        dues:
+                          type: integer
+             
+
+      responses: 
+        '200':
+          description: "Order processed successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  amount:
+                    type: number
+                  interest:
+                    type: integer
+                  total:
+                    type: number
+                  booking:
+                    type: object
+                    properties:
+                      dateFrom:
+                        type: string
+                      dateTo:
+                        type: string
+                      destination:
+                        type: string
+                      hotelCode:
+                        type: string
+                      peopleAmount:
+                        type: integer
+                      roomType:
+                        type: string
+                        enum:
+                          - single
+                          - double
+                          - triple
+                          - multiple
+                      people:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            dni:
+                              type: string
+                            name:
+                              type: string
+                            lastname:
+                              type: string
+                            birthDate:
+                              type: string
+                            mail:
+                              type: string
+                      paymentMethod:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                            - debit
+                            - credit
+                          number:
+                            type: string
+                          dues:
+                            type: integer
+                  statusCode:
+                    type: object
+                    properties:
+                      code:
+                        type: integer
+                      message:
+                        type: string
+        '400':
+          description: "Invalid request body"
+        '500':
+          $ref: '#/components/responses/serverError'
+          
+          
+          
+  /flight-reservation:
+            
+      post:
+        tags:
+          - "Flights"
+        summary: Books a flight.
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  flightReservation:
+                    type: object
+                    properties:
+                      dateFrom:
+                        type: string
+                      dateTo:
+                        type: string
+                      origin:
+                        type: string
+                      destination:
+                        type: string
+                      flightNumber:
+                        type: string
+                      seats:
+                        type: integer
+                      seatType:
+                        type: string
+                        enum:
+                          - economy
+                          - business
+                      people:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            dni:
+                              type: string
+                            name:
+                              type: string
+                            lastname:
+                              type: string
+                            birthDate:
+                              type: string
+                            mail:
+                              type: string
+                      paymentMethod:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                            - debit
+                            - credit
+                          number:
+                            type: string
+                          dues:
+                            type: integer
+               
+  
+        responses: 
+          '200':
+            description: "Order processed successfully"
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    username:
+                      type: string
+                    amount:
+                      type: number
+                    interest:
+                      type: integer
+                    total:
+                      type: number
+                    flightReservation:
+                      type: object
+                      properties:
+                        dateFrom:
+                          type: string
+                        dateTo:
+                          type: string
+                        origin:
+                          type: string
+                        destination:
+                          type: string
+                        flightNumber:
+                          type: string
+                        seats:
+                          type: integer
+                        seatType:
+                          type: string
+                          enum:
+                            - economy
+                            - business
+                        people:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              dni:
+                                type: string
+                              name:
+                                type: string
+                              lastname:
+                                type: string
+                              birthDate:
+                                type: string
+                              mail:
+                                type: string
+                        paymentMethod:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - debit
+                              - credit
+                            number:
+                              type: string
+                            dues:
+                              type: integer
+                    statusCode:
+                      type: object
+                      properties:
+                        code:
+                          type: integer
+                        message:
+                          type: string
+          '400':
+            description: "Invalid request body"
+          '500':
+            $ref: '#/components/responses/serverError'
+
+  
+components:
+
+  schemas:
+  
+    hotelData:
+        type: object
+        properties:
+          hotelId:
+            type: integer
+          name:
+            type: string
+          city:
+            type: string
+          roomType:
+            type: string
+          pricePerNight:
+            type: integer
+          availableFrom:
+            type: string
+          availableTo:
+            type: string
+          reserved:
+            type: boolean
+            default: false
+           
+    flightData:
+      type: object
+      properties:
+        flightId:
+          type: integer
+        flightNumber:
+          type: string
+        origin:
+          type: string
+        destination:
+          type: string
+        seatType:
+          type: string
+        pricePerPerson:
+          type: integer
+        dateFrom:
+          type: string
+        dateTo:
+          type: string
+        available:
+          type: string
+      
+      
+  responses:
+    serverError:
+      description: "Unexpected error"
+   

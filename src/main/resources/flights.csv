@@ -1,5 +1,5 @@
 flightNumber,origin,destination,seatType,pricePerPerson,dateFrom,dateTo,availableSeats
-BAPI-1235,Buenos Aires,Puerto Iguazú,Economy,$6500,10/02/2021,15/02/2021,4
+BAPI-1235,Buenos Aires,Puerto Iguazú,Economy,$6500,10/02/2021,15/02/2021,10
 PIBA-1420,Puerto Iguazú,Bogotá,Business,$43200,10/02/2021,20/02/2021,2
 PIBA-1420,Puerto Iguazú,Bogotá,Economy,$25735,10/02/2021,21/02/2021,6
 BATU-5536,Buenos Aires,Tucumán,Economy,$7320,10/02/2021,17/02/2021,10

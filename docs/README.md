@@ -31,7 +31,7 @@ Example request:
     - `dni` must be a numeric string (no special characters)
     - Accepts `CREDIT` and `DEBIT` payment types
     - Accepts up to 6 payment dues 
-    - `dues=1` returns 0% `interest for both `CREDIT` and `DEBIT` types
+    - `dues=1` returns 0% interest` for both `CREDIT` and `DEBIT` types
     - Dates string pattern `dd/MM/YYYY`
     - `dateFrom` and `dateTo` must not be the same or overlap
 
@@ -96,7 +96,7 @@ Example request:
   - `dni` must be a numeric string (no special characters)
   - Accepts `CREDIT` and `DEBIT` payment types
   - Accepts up to 6 payment dues
-  - `dues=1` returns 0% `interest for both `CREDIT` and `DEBIT` types
+  - `dues=1` returns 0% `interest` for both `CREDIT` and `DEBIT` types
   - Dates string pattern `dd/MM/YYYY`
   - `dateFrom` and `dateTo` must not be the same or overlap
   

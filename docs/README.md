@@ -1,7 +1,7 @@
 # desafioQuality
 
 - Path: /api/v1
-- [Coverage Report HTML](../reports/index.html)
+- [Coverage Report HTML](../reports/index.html) (found in [reports](../reports) directory)
 
 
 ## Endpoints

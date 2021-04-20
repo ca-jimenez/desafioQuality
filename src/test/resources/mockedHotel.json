@@ -1,0 +1,11 @@
+{
+  "hotelId": 4,
+  "code": "BH-0002",
+  "name": "Hotel Bristol 2",
+  "city": "Buenos Aires",
+  "roomType": "Double",
+  "pricePerNight": 7200,
+  "availableFrom": "2021-02-12",
+  "availableTo": "2021-04-17",
+  "reserved": false
+}

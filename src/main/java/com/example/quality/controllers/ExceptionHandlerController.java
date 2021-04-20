@@ -1,8 +1,7 @@
 package com.example.quality.controllers;
 
 import com.example.quality.dtos.ErrorDTO;
-import com.example.quality.exceptions.InvalidDateException;
-import com.example.quality.exceptions.InvalidDestinationException;
+import com.example.quality.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -14,8 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class ExceptionHandlerController {
 
     private final Integer BAD_REQUEST_STATUS = 400;
-    private final Integer CONFLICT_STATUS = 409;
-    private final Integer UNPROCESSABLE_ENTITY_STATUS = 422;
     private final Integer INTERNAL_SERVER_ERROR_STATUS = 500;
 
     @ExceptionHandler(value = {InvalidDateException.class})
@@ -24,36 +21,47 @@ public class ExceptionHandlerController {
         return new ResponseEntity<>(errorDTO, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(value = {InvalidDestinationException.class})
-    public ResponseEntity<ErrorDTO> InvalidDestinationExceptionHandler(InvalidDestinationException e) {
-        ErrorDTO errorDTO = new ErrorDTO("Invalid Destination", e.getMessage(), BAD_REQUEST_STATUS);
+    @ExceptionHandler(value = {InvalidLocationException.class})
+    public ResponseEntity<ErrorDTO> InvalidLocationExceptionHandler(InvalidLocationException e) {
+        ErrorDTO errorDTO = new ErrorDTO("Invalid Location", e.getMessage(), BAD_REQUEST_STATUS);
         return new ResponseEntity<>(errorDTO, HttpStatus.BAD_REQUEST);
     }
 
-//    @ExceptionHandler(value = {InvalidShopingCartException.class})
-//    public ResponseEntity<ErrorDTO> InvalidShopingCartExceptionHandler(InvalidShopingCartException e) {
-//        ErrorDTO errorDTO = new ErrorDTO("Invalid Shopping Cart ID", e.getMessage(), BAD_REQUEST_STATUS);
-//        return new ResponseEntity<>(errorDTO, HttpStatus.BAD_REQUEST);
-//    }
-//
-//    @ExceptionHandler(value = {InvalidClientDateException.class})
-//    public ResponseEntity<ErrorDTO> InvalidClientDateExceptionHandler(InvalidClientDateException e) {
-//        ErrorDTO errorDTO = new ErrorDTO("Invalid Client information", e.getMessage(), BAD_REQUEST_STATUS);
-//        return new ResponseEntity<>(errorDTO, HttpStatus.BAD_REQUEST);
-//    }
-//
-//    @ExceptionHandler(value = {EmailConflictException.class})
-//    public ResponseEntity<ErrorDTO> EmailConflictExceptionHandler(EmailConflictException e) {
-//        ErrorDTO errorDTO = new ErrorDTO("Email address already registered", e.getMessage(), CONFLICT_STATUS);
-//        return new ResponseEntity<>(errorDTO, HttpStatus.CONFLICT);
-//    }
-//
-//
-//    @ExceptionHandler(value = {InsufficientStockException.class})
-//    public ResponseEntity<ErrorDTO> InsufficientStockExceptionHandler(InsufficientStockException e) {
-//        ErrorDTO errorDTO = new ErrorDTO("Insufficient Stock", e.getMessage(), UNPROCESSABLE_ENTITY_STATUS);
-//        return new ResponseEntity<>(errorDTO, HttpStatus.UNPROCESSABLE_ENTITY);
-//    }
+    @ExceptionHandler(value = {InvalidFilterException.class})
+    public ResponseEntity<ErrorDTO> InvalidFilterExceptionHandler(InvalidFilterException e) {
+        ErrorDTO errorDTO = new ErrorDTO("Invalid filters", e.getMessage(), BAD_REQUEST_STATUS);
+        return new ResponseEntity<>(errorDTO, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = {InvalidHotelException.class})
+    public ResponseEntity<ErrorDTO> InvalidHotelExceptionHandler(InvalidHotelException e) {
+        ErrorDTO errorDTO = new ErrorDTO("Invalid Hotel information", e.getMessage(), BAD_REQUEST_STATUS);
+        return new ResponseEntity<>(errorDTO, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = {InvalidBookingException.class})
+    public ResponseEntity<ErrorDTO> InvalidBookingExceptionHandler(InvalidBookingException e) {
+        ErrorDTO errorDTO = new ErrorDTO("Invalid booking information", e.getMessage(), BAD_REQUEST_STATUS);
+        return new ResponseEntity<>(errorDTO, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = {InvalidPaymentException.class})
+    public ResponseEntity<ErrorDTO> InvalidPaymentExceptionHandler(InvalidPaymentException e) {
+        ErrorDTO errorDTO = new ErrorDTO("Invalid payment method information", e.getMessage(), BAD_REQUEST_STATUS);
+        return new ResponseEntity<>(errorDTO, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = {InvalidPersonDataException.class})
+    public ResponseEntity<ErrorDTO> InvalidPersonDataExceptionHandler(InvalidPersonDataException e) {
+        ErrorDTO errorDTO = new ErrorDTO("Invalid user or guest information", e.getMessage(), BAD_REQUEST_STATUS);
+        return new ResponseEntity<>(errorDTO, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = {InvalidFlightException.class})
+    public ResponseEntity<ErrorDTO> InvalidFlightExceptionHandler(InvalidFlightException e) {
+        ErrorDTO errorDTO = new ErrorDTO("Invalid flight information", e.getMessage(), BAD_REQUEST_STATUS);
+        return new ResponseEntity<>(errorDTO, HttpStatus.BAD_REQUEST);
+    }
 
     @ExceptionHandler(value = {Exception.class})
     public ResponseEntity<ErrorDTO> ServerErrorExceptionHandler(Exception e) {

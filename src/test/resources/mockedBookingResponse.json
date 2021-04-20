@@ -1,0 +1,39 @@
+{
+  "username": "email@email.com",
+  "amount": 14400.0,
+  "interest": 5,
+  "total": 15120.0,
+  "booking": {
+    "dateFrom": "12/03/2021",
+    "dateTo": "14/03/2021",
+    "destination": "Buenos Aires",
+    "hotelCode": "BH-0002",
+    "peopleAmount": 2,
+    "roomType": "DOUBLE",
+    "people": [
+      {
+        "dni": "1234",
+        "name": "Carlos",
+        "lastname": "Pérez",
+        "birthDate": "01/07/1994",
+        "mail": "mail@mail.com"
+      },
+      {
+        "dni": "12345",
+        "name": "María",
+        "lastname": "Pérez",
+        "birthDate": "01/07/1984",
+        "mail": "mail2@mail.com"
+      }
+    ],
+    "paymentMethod": {
+      "type": "credit",
+      "number": "12324535",
+      "dues": 3
+    }
+  },
+  "statusCode": {
+    "code": 200,
+    "message": "Room booked successfully"
+  }
+}

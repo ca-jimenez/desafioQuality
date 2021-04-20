@@ -1,5 +1,7 @@
 package com.example.quality.repositories;
 
+
+import com.example.quality.dtos.FlightDTO;
 import com.example.quality.dtos.HotelDTO;
 import com.example.quality.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,49 +20,52 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Repository
-public class HotelRepositoryImpl implements HotelRepository {
+public class FlightRepositoryImpl implements FlightRepository {
 
     private final AtomicLong idCounter = new AtomicLong(1);
 
-    private List<HotelDTO> hotelList;
+    private List<FlightDTO> flightList;
 
-    public HotelRepositoryImpl(@Value("${hotels_path:hotels.csv}") String path) {
-        hotelList = loadDatabase(path);
+    public FlightRepositoryImpl(@Value("${flights_path:flights.csv}") String path) {
+
+        flightList = loadDatabase(path);
     }
 
     @Override
-    public List<HotelDTO> getHotelList() {
-        return hotelList;
+    public List<FlightDTO> getFlightList() {
+        return flightList;
     }
 
     @Override
-    public List<HotelDTO> getAvailableHotelsList() {
-        return hotelList.stream()
-                .filter(hotel -> hotel.getReserved().equals(false))
+    public List<FlightDTO> getAvailableFlightsList() {
+        return flightList.stream()
+                .filter(flight -> flight.getAvailableSeats() > 0)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public HotelDTO getHotelByCode(String hotelCode) {
-        return hotelList.stream()
-                .filter(hotel -> hotel.getCode().equalsIgnoreCase(hotelCode))
+    public FlightDTO getFlightByCode(String flightNumber) {
+        return flightList.stream()
+                .filter(flight -> flight.getFlightNumber().equalsIgnoreCase(flightNumber))
                 .findFirst().orElse(null);
     }
 
     @Override
-    public List<HotelDTO> filterAvailableHotelsByDateAndDestination(LocalDate fromDate, LocalDate toDate, String destination) {
-        return getAvailableHotelsList().stream()
-                .filter(hotel -> hotel.getAvailableFrom().compareTo(fromDate) <= 0
-                        && hotel.getAvailableTo().compareTo(toDate) >= 0)
-                .filter(hotel -> StringUtil.normalizeString(hotel.getCity())
-                        .equals(destination))
+    public List<FlightDTO> filterAvailableFlightsByDateAndLocation(LocalDate fromDate, LocalDate toDate, String origin, String destination) {
+        return getAvailableFlightsList().stream()
+                .filter(flight -> flight.getDateFrom().compareTo(fromDate) <= 0
+                        && flight.getDateTo().compareTo(toDate) >= 0)
+                .filter(flight -> StringUtil.normalizeString(flight.getOrigin()).equals(origin)
+                        && StringUtil.normalizeString(flight.getDestination()).equals(destination))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public void reserveHotel(String hotelCode) {
+    public void reserveFlight(String flightNumber, Integer seats) {
 
-        getHotelByCode(hotelCode).setReserved(true);
+        Integer availableSeats = getFlightByCode(flightNumber).getAvailableSeats();
+
+        getFlightByCode(flightNumber).setAvailableSeats(availableSeats - seats);
 
         updateDatabase();
     }
@@ -69,16 +74,17 @@ public class HotelRepositoryImpl implements HotelRepository {
 
     private void updateDatabase() {
 
-        String recordAsCsv = hotelList.stream()
-                .map(StringUtil::hotelToCsvRow)
+        String recordAsCsv = flightList.stream()
+                .map(StringUtil::flightToCsvRow)
                 .collect(Collectors.joining(System.getProperty("line.separator")));
 
         try {
             // File path
-            FileWriter writer = new FileWriter("src/main/resources/hotels.csv");
+            FileWriter writer = new FileWriter("src/main/resources/flights.csv");
+
 
             // Add headers
-            writer.append("code,name,city,roomType,pricePerNight,availableFrom,availableTo,reserved\n");
+            writer.append("flightNumber,origin,destination,seatType,pricePerPerson,dateFrom,dateTo,availableSeats\n");
 
             // Add content
             writer.append(recordAsCsv);
@@ -90,9 +96,9 @@ public class HotelRepositoryImpl implements HotelRepository {
     }
 
     // Parse csv file data
-    private List<HotelDTO> loadDatabase(String path) {
+    private List<FlightDTO> loadDatabase(String path) {
 
-        List<HotelDTO> records = new ArrayList<>();
+        List<FlightDTO> records = new ArrayList<>();
 
         try {
 
@@ -105,14 +111,15 @@ public class HotelRepositoryImpl implements HotelRepository {
             reader.readLine();
 
             while ((row = reader.readLine()) != null) {
+
                 String[] data = row.split(",");
 
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-                String code = data[0];
-                String name = data[1];
-                String city = data[2];
-                String roomType = data[3];
+                String flightNumber = data[0];
+                String origin = data[1];
+                String destination = data[2];
+                String seatType = data[3];
 
                 Integer price = Integer.parseInt(data[4]
                         .replace("$", ""));
@@ -120,9 +127,10 @@ public class HotelRepositoryImpl implements HotelRepository {
                 LocalDate fromDate = LocalDate.parse(data[5], formatter);
                 LocalDate toDate = LocalDate.parse(data[6], formatter);
 
-                Boolean reserved = data[7].equals("SI");
+                Integer availableSeats = Integer.parseInt(data[7]);
 
-                records.add(new HotelDTO(idCounter.getAndIncrement(), code, name, city, roomType, price, fromDate, toDate, reserved));
+
+                records.add(new FlightDTO(idCounter.getAndIncrement(), flightNumber, origin, destination, seatType, price, fromDate, toDate, availableSeats));
             }
             reader.close();
 

@@ -1,0 +1,33 @@
+{
+  "username": "email@email.com",
+  "flightReservation": {
+    "dateFrom": "12/02/2021",
+    "dateTo": "14/02/2021",
+    "origin": "Buenos Aires",
+    "destination": "Puerto Iguazú",
+    "flightNumber": "BAPI-1235",
+    "seats": 2,
+    "seatType": "Economy",
+    "people": [
+      {
+        "dni": "1234",
+        "name": "Carlos",
+        "lastname": "Pérez",
+        "birthDate": "01/07/1994",
+        "mail": "mail@mail.com"
+      },
+      {
+        "dni": "12345",
+        "name": "María",
+        "lastname": "Pérez",
+        "birthDate": "01/07/1984",
+        "mail": "mail2@mail.com"
+      }
+    ],
+    "paymentMethod": {
+      "type": "debit",
+      "number": "12324535",
+      "dues": 1
+    }
+  }
+}

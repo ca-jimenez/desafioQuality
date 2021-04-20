@@ -1,11 +1,12 @@
 package com.example.quality.services;
 
-import com.example.quality.dtos.HotelDTO;
-import com.example.quality.exceptions.InvalidDateException;
-import com.example.quality.exceptions.InvalidDestinationException;
-import com.example.quality.handlers.StringHandler;
+import com.example.quality.dtos.*;
+import com.example.quality.exceptions.InvalidFilterException;
+import com.example.quality.exceptions.InvalidHotelException;
+import com.example.quality.exceptions.InvalidLocationException;
 import com.example.quality.repositories.HotelRepository;
-import com.example.quality.handlers.DateHandler;
+import com.example.quality.utils.DateUtil;
+import com.example.quality.utils.StringUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -18,13 +19,14 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.AdditionalMatchers.not;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 class HotelServiceImplTest {
@@ -38,139 +40,262 @@ class HotelServiceImplTest {
     @Mock
     private HotelRepository hotelRepository;
 
-    private static MockedStatic<DateHandler> dateHandler;
-
-    private static MockedStatic<StringHandler> stringHandler;
-
-    @BeforeAll
-    static void beforeAll() {
-        dateHandler = mockStatic(DateHandler.class);
-        stringHandler = mockStatic(StringHandler.class);
-
-    }
-
+    private static MockedStatic<DateUtil> dateUtil;
+    private static MockedStatic<StringUtil> stringUtil;
 
     @BeforeEach
     void setUp() throws IOException {
+
         openMocks(this);
         hotelService = new HotelServiceImpl(hotelRepository);
 
-//        dateHandler = Mockito.mockStatic(DateHandler.class);
-//        stringHandler = Mockito.mockStatic(StringHandler.class);
-
         objectMapper.registerModule(new JavaTimeModule());
+
+        when(hotelRepository.getAvailableHotelsList()).thenReturn(objectMapper.readValue(
+                new File("src/test/resources/mockedAvailableHotels.json"),
+                new TypeReference<>() {
+                }));
 
         when(hotelRepository.getHotelList()).thenReturn(objectMapper.readValue(
                 new File("src/test/resources/mockedHotelList.json"),
                 new TypeReference<>() {
                 }));
+
+        Mockito.doNothing().when(hotelRepository).reserveHotel(any());
     }
 
-    @AfterAll
-    public static void close() {
-        dateHandler.close();
-        stringHandler.close();
-    }
 
     @Test
-    @DisplayName("Should Return Available Hotels Only")
-    void getAvailableHotels() throws IOException {
+    @DisplayName("Should Return All Available Hotels")
+    void getAvailableHotels() throws Exception {
 
         List<HotelDTO> availableHotels = objectMapper.readValue(
                 new File("src/test/resources/mockedAvailableHotels.json"),
                 new TypeReference<>() {
                 });
 
-        assertEquals(hotelService.getAvailableHotels(), availableHotels);
+        assertEquals(availableHotels, hotelService.getAvailableHotels(new HashMap<>()));
     }
 
     @Test
     @DisplayName("Should Return Filtered Available Hotels")
     void getFilteredAvailableHotels() throws Exception {
 
+        dateUtil = mockStatic(DateUtil.class);
+        stringUtil = mockStatic(StringUtil.class);
+
+        Map<String, String> filters = new HashMap<>();
+
         String fromDate = "10/02/2021";
         String toDate = "19/02/2021";
         String destination = "Buenos Aires";
 
-        dateHandler.when(() -> DateHandler.parseDate(fromDate)).thenReturn(LocalDate.parse(fromDate, formatter));
-        dateHandler.when(() -> DateHandler.parseDate(toDate)).thenReturn(LocalDate.parse(toDate, formatter));
+        filters.put("dateFrom", fromDate);
+        filters.put("dateTo", toDate);
+        filters.put("destination", destination);
 
-        stringHandler.when(() -> StringHandler.normalizeString(destination)).thenReturn(destination.toLowerCase());
-        stringHandler.when(() -> StringHandler.normalizeString(not(eq(destination)))).thenReturn("destination");
+        when(hotelRepository.filterAvailableHotelsByDateAndDestination(LocalDate.parse(fromDate, formatter),
+                LocalDate.parse(toDate, formatter), "buenos aires"))
+                .thenReturn(objectMapper.readValue(
+                        new File("src/test/resources/mockedFilteredHotels.json"),
+                        new TypeReference<>() {
+                        }));
+
+        dateUtil.when(() -> DateUtil.parseDate(fromDate)).thenReturn(LocalDate.parse(fromDate, formatter));
+        dateUtil.when(() -> DateUtil.parseDate(toDate)).thenReturn(LocalDate.parse(toDate, formatter));
+
+        stringUtil.when(() -> StringUtil.normalizeString(destination)).thenReturn(destination.toLowerCase());
+        stringUtil.when(() -> StringUtil.normalizeString(not(eq(destination)))).thenReturn("destination");
 
         List<HotelDTO> availableHotels = objectMapper.readValue(
                 new File("src/test/resources/mockedFilteredHotels.json"),
                 new TypeReference<>() {
                 });
 
-        assertEquals(hotelService.getFilteredAvailableHotels(fromDate, toDate, destination), availableHotels);
+        assertEquals(availableHotels, hotelService.getAvailableHotels(filters));
+
+        dateUtil.close();
+        stringUtil.close();
     }
 
     @Test
-    @DisplayName("Should Throw InvalidDestinationException")
+    @DisplayName("Should Throw InvalidLocationException")
     void shouldThrowInvalidDestinationException() {
+
+        dateUtil = mockStatic(DateUtil.class);
+        stringUtil = mockStatic(StringUtil.class);
+
+        Map<String, String> filters = new HashMap<>();
 
         String fromDate = "10/02/2021";
         String toDate = "19/02/2021";
         String destination = "Cancunn";
 
-        dateHandler.when(() -> DateHandler.parseDate(fromDate)).thenReturn(LocalDate.parse(fromDate, formatter));
-        dateHandler.when(() -> DateHandler.parseDate(toDate)).thenReturn(LocalDate.parse(toDate, formatter));
+        filters.put("dateFrom", fromDate);
+        filters.put("dateTo", toDate);
+        filters.put("destination", destination);
 
-        stringHandler.when(() -> StringHandler.normalizeString(destination)).thenReturn(destination.toLowerCase());
-        stringHandler.when(() -> StringHandler.normalizeString(not(eq(destination)))).thenReturn("destination");
+        dateUtil.when(() -> DateUtil.parseDate(fromDate)).thenReturn(LocalDate.parse(fromDate, formatter));
+        dateUtil.when(() -> DateUtil.parseDate(toDate)).thenReturn(LocalDate.parse(toDate, formatter));
 
-        assertThrows(InvalidDestinationException.class,
-                () -> hotelService.getFilteredAvailableHotels(fromDate, toDate, destination),
+        stringUtil.when(() -> StringUtil.normalizeString(destination)).thenReturn(destination.toLowerCase());
+        stringUtil.when(() -> StringUtil.normalizeString(not(eq(destination)))).thenReturn("destination");
+
+        assertThrows(InvalidLocationException.class,
+                () -> hotelService.getAvailableHotels(filters),
                 "Invalid Destination Exception expected but not thrown");
+
+        dateUtil.close();
+        stringUtil.close();
     }
 
-//    @Test
-//    @DisplayName("Should Throw InvalidDateException: Same Date")
-//    void shouldThrowInvalidDateExceptionSameDate() throws Exception {
-//
-//        InvalidDateException exception = assertThrows(InvalidDateException.class,
-//                () -> hotelService.getFilteredAvailableHotels("19/02/2021", "19/02/2021", "Buenos Aires"),
-//                "Invalid Date Exception expected but not thrown");
-//
-//        assertEquals(exception.getMessage(), "dateTo must be greater than dateFrom");
-//    }
-
     @Test
-    @DisplayName("Should Throw InvalidDateException: Invalid Range")
-    void shouldThrowInvalidDateExceptionInvalidRange() {
+    @DisplayName("Should Throw InvalidFilterException")
+    void shouldThrowInvalidFilterException() {
 
-        String fromDate = "20/02/2021";
+        Map<String, String> filters1 = new HashMap<>();
+        Map<String, String> filters2 = new HashMap<>();
+        Map<String, String> filters3 = new HashMap<>();
+
+        String fromDate = "10/02/2021";
         String toDate = "19/02/2021";
         String destination = "Buenos Aires";
+        String invalidFilter = "abc";
 
-        dateHandler.when(() -> DateHandler.parseDate(fromDate)).thenReturn(LocalDate.parse(fromDate, formatter));
-        dateHandler.when(() -> DateHandler.parseDate(toDate)).thenReturn(LocalDate.parse(toDate, formatter));
+        filters1.put("dateFrom", fromDate);
+        filters1.put("dateTo", toDate);
 
-        stringHandler.when(() -> StringHandler.normalizeString(destination)).thenReturn(destination.toLowerCase());
-        stringHandler.when(() -> StringHandler.normalizeString(not(eq(destination)))).thenReturn("destination");
+        filters2.put("dateFrom", fromDate);
+        filters2.put("dateTo", toDate);
+        filters2.put("destination", destination);
+        filters2.put("invalidFilter", invalidFilter);
 
-        InvalidDateException exception = assertThrows(InvalidDateException.class,
-                () -> hotelService.getFilteredAvailableHotels(fromDate, toDate, destination),
-                "Invalid Date Exception expected but not thrown");
+        filters3.put("dateTo", toDate);
+        filters3.put("destination", destination);
+        filters3.put("invalidFilter", invalidFilter);
 
-        assertEquals(exception.getMessage(), "dateTo must be greater than dateFrom");
+        InvalidFilterException missingFilterE = assertThrows(InvalidFilterException.class,
+                () -> hotelService.getAvailableHotels(filters1),
+                "Invalid Filter Exception expected but not thrown");
+
+        assertEquals("Accepted filters are 'dateFrom', 'dateTo' and 'destination'", missingFilterE.getMessage());
+
+        InvalidFilterException extraFilterE = assertThrows(InvalidFilterException.class,
+                () -> hotelService.getAvailableHotels(filters2),
+                "Invalid Filter Exception expected but not thrown");
+
+        assertEquals("Accepted filters are 'dateFrom', 'dateTo' and 'destination'", extraFilterE.getMessage());
+
+        InvalidFilterException invalidFilterE = assertThrows(InvalidFilterException.class,
+                () -> hotelService.getAvailableHotels(filters3),
+                "Invalid Filter Exception expected but not thrown");
+
+        assertEquals("Request with filters must include 'dateFrom', 'dateTo' and 'destination'", invalidFilterE.getMessage());
     }
 
     @Test
-    @DisplayName("Should Throw InvalidDateException: Invalid Format")
-    void shouldThrowInvalidDateExceptionInvalidFormat() {
+    @DisplayName("Should return Booking Response Status OK")
+    void bookARoom() throws Exception {
 
-        String fromDate = "20-02-2021";
-        String toDate = "02/03/2021";
-        String destination = "Buenos Aires";
+        BookingRequestDTO request = objectMapper.readValue(
+                new File("src/test/resources/mockedBookingRequest.json"),
+                new TypeReference<>() {
+                });
 
-        dateHandler.when(() -> DateHandler.parseDate(fromDate)).thenThrow(new InvalidDateException("Invalid date format '" + fromDate + "'. Accepted format: DD/MM/YYYY"));
+        when(hotelRepository.getHotelByCode(any())).thenReturn(objectMapper.readValue(
+                new File("src/test/resources/mockedHotel.json"),
+                new TypeReference<>() {
+                }));
 
-        InvalidDateException exception = assertThrows(InvalidDateException.class,
-                () -> hotelService.getFilteredAvailableHotels(fromDate, toDate, destination),
-                "Invalid Date Exception expected but not thrown");
+        BookingResponseDTO reservation = objectMapper.readValue(
+                new File("src/test/resources/mockedBookingResponse.json"),
+                new TypeReference<>() {
+                });
 
-        assertEquals(exception.getMessage(), "Invalid date format '" + fromDate + "'. Accepted format: DD/MM/YYYY");
+        assertEquals(reservation, hotelService.bookARoom(request));
+    }
+
+    @Test
+    @DisplayName("Should throw Invalid Hotel Code exception")
+    void bookARoomInvalidCode() throws Exception {
+
+        BookingRequestDTO request = objectMapper.readValue(
+                new File("src/test/resources/mockedBookingRequest.json"),
+                new TypeReference<>() {
+                });
+
+        request.getBooking().setHotelCode("InvalidCode");
+
+        when(hotelRepository.getHotelByCode(any())).thenReturn(null);
+
+        BookingResponseDTO reservation = objectMapper.readValue(
+                new File("src/test/resources/mockedBookingResponse.json"),
+                new TypeReference<>() {
+                });
+
+        InvalidHotelException exception = assertThrows(InvalidHotelException.class,
+                () -> hotelService.bookARoom(request),
+                "InvalidHotelException expected but not thrown");
+
+        assertEquals("Hotel with code " + request.getBooking().getHotelCode() + " not found",
+                exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw Invalid Hotel dates exception")
+    void bookARoomInvalidDates() throws Exception {
+
+        BookingRequestDTO request = objectMapper.readValue(
+                new File("src/test/resources/mockedBookingRequest.json"),
+                new TypeReference<>() {
+                });
+
+        request.getBooking().setDateTo("15/10/2021");
+
+        when(hotelRepository.getHotelByCode(any())).thenReturn(objectMapper.readValue(
+                new File("src/test/resources/mockedHotel.json"),
+                new TypeReference<>() {
+                }));
+
+        BookingResponseDTO reservation = objectMapper.readValue(
+                new File("src/test/resources/mockedBookingResponse.json"),
+                new TypeReference<>() {
+                });
+
+        InvalidHotelException exception = assertThrows(InvalidHotelException.class,
+                () -> hotelService.bookARoom(request),
+                "InvalidHotelException expected but not thrown");
+
+        assertEquals("dates not available for hotel " + request.getBooking().getHotelCode(),
+                exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw Invalid Hotel destination exception")
+    void bookARoomInvalidDestination() throws Exception {
+
+        BookingRequestDTO request = objectMapper.readValue(
+                new File("src/test/resources/mockedBookingRequest.json"),
+                new TypeReference<>() {
+                });
+
+        request.getBooking().setDestination("Cancun");
+
+        when(hotelRepository.getHotelByCode(any())).thenReturn(objectMapper.readValue(
+                new File("src/test/resources/mockedHotel.json"),
+                new TypeReference<>() {
+                }));
+
+        BookingResponseDTO reservation = objectMapper.readValue(
+                new File("src/test/resources/mockedBookingResponse.json"),
+                new TypeReference<>() {
+                });
+
+        InvalidHotelException exception = assertThrows(InvalidHotelException.class,
+                () -> hotelService.bookARoom(request),
+                "InvalidHotelException expected but not thrown");
+
+        assertEquals("Invalid destination for hotel " + request.getBooking().getHotelCode(),
+                exception.getMessage());
     }
 }

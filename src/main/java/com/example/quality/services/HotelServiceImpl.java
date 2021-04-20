@@ -1,19 +1,22 @@
 package com.example.quality.services;
 
 
-import com.example.quality.dtos.HotelDTO;
-import com.example.quality.exceptions.InvalidDateException;
-import com.example.quality.exceptions.InvalidDestinationException;
+import com.example.quality.dtos.*;
+import com.example.quality.exceptions.*;
 import com.example.quality.repositories.HotelRepository;
-import com.example.quality.handlers.DateHandler;
-import com.example.quality.handlers.StringHandler;
+import com.example.quality.utils.BookingUtil;
+import com.example.quality.utils.DateUtil;
+import com.example.quality.utils.PersonValidationUtil;
+import com.example.quality.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -23,268 +26,172 @@ public class HotelServiceImpl implements HotelService {
 
 //    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     //ToDo pasar filtros a repo?
+    //ToDo contemplate repository empty list
 
     @Autowired
     public HotelServiceImpl(HotelRepository hotelRepository) {
         this.hotelRepository = hotelRepository;
     }
 
+//    @Override
+//    public List<HotelDTO> getAllAvailableHotels() {
+//        return hotelRepository.getHotelList().stream()
+//                .filter(hotel -> hotel.getReserved().equals(false))
+//                .collect(Collectors.toList());
+//    }
+
     @Override
-    public List<HotelDTO> getAvailableHotels() {
-        return hotelRepository.getHotelList().stream()
-                .filter(hotel -> hotel.getReserved().equals(false))
-                .collect(Collectors.toList());
+    public List<HotelDTO> getAvailableHotels(Map<String, String> params) throws Exception {
+
+        List<HotelDTO> allAvailableHotels = hotelRepository.getAvailableHotelsList();
+
+        if (params.size() < 1) {
+
+            return allAvailableHotels;
+
+        } else if (params.size() == 3) {
+
+            validateRequiredFilters(params);
+            return getFilteredHotels(params);
+
+        } else {
+            throw new InvalidFilterException("Accepted filters are 'dateFrom', 'dateTo' and 'destination'");
+        }
     }
 
     @Override
-    public List<HotelDTO> getFilteredAvailableHotels(String dateFrom, String dateTo, String destination) throws Exception {
+    public BookingResponseDTO bookARoom(BookingRequestDTO request) throws Exception {
 
-        List<HotelDTO> allAvailableHotels = getAvailableHotels();
+        PersonValidationUtil.validateEmail(request.getUsername());
 
-        LocalDate fromDate = DateHandler.parseDate(dateFrom);
-        LocalDate toDate = DateHandler.parseDate(dateTo);
+        BookingDTO booking = request.getBooking();
+        HotelDTO hotelRoom = hotelRepository.getHotelByCode(booking.getHotelCode());
 
-//        DateUtils.validateDateRange(fromDate, toDate);
-        if (fromDate.compareTo(toDate) >= 0) {
-            throw new InvalidDateException("dateTo must be greater than dateFrom");
+        validateHotel(hotelRoom, booking);
+        validatePeopleAmount(booking.getRoomType().toLowerCase(), booking.getPeopleAmount(), booking.getPeople().size());
+        PersonValidationUtil.validatePeopleData(booking.getPeople());
+        Double amount = calculateHotelBaseAmount(hotelRoom, booking);
+        Integer interest = BookingUtil.getInterestPercentage(booking.getPaymentMethod());
+        Double amountWithInterests = BookingUtil.calculateTotalWithInterests(amount, interest);
+
+        hotelRepository.reserveHotel(booking.getHotelCode());
+
+        return new BookingResponseDTO(
+                request.getUsername(),
+                amount,
+                interest,
+                amountWithInterests,
+                booking,
+                new StatusDTO(200, "Room booked successfully")
+        );
+    }
+
+
+    private Double calculateHotelBaseAmount(HotelDTO hotelRoom, BookingDTO booking) throws InvalidDateException {
+
+//        HotelDTO hotelRoom = hotelRepository.getHotelByCode(booking.getHotelCode());
+
+        LocalDateTime dateFrom = DateUtil.parseDateToLocalDateTime(booking.getDateFrom());
+        LocalDateTime dateTo = DateUtil.parseDateToLocalDateTime(booking.getDateTo());
+
+        long days = Duration.between(dateFrom, dateTo).toDays();
+
+//        System.out.println("days = " + days);
+
+        return hotelRoom.getPricePerNight() * (double) days;
+    }
+
+
+    private void validateHotel(HotelDTO hotelRoom, BookingDTO booking) throws Exception {
+
+//        HotelDTO hotelRoom = hotelRepository.getHotelByCode(booking.getHotelCode());
+
+        if (hotelRoom == null) {
+            throw new InvalidHotelException("Hotel with code " + booking.getHotelCode() + " not found");
         }
 
-        String normalizedDestination = StringHandler.normalizeString(destination);
+        if (hotelRoom.getReserved()) {
+            throw new InvalidHotelException("Hotel with code " + booking.getHotelCode() + " is not available");
+        }
+
+        if (!hotelRoom.getRoomType().equalsIgnoreCase(booking.getRoomType())) {
+            throw new InvalidHotelException("Invalid room type for hotel " + booking.getHotelCode());
+        }
+
+        String normalizedDestination = StringUtil.normalizeString(booking.getDestination());
+
+        if (!StringUtil.normalizeString(hotelRoom.getCity()).equals(normalizedDestination)) {
+            throw new InvalidHotelException("Invalid destination for hotel " + booking.getHotelCode());
+        }
+
+        LocalDate dateFrom = DateUtil.parseDate(booking.getDateFrom());
+        LocalDate dateTo = DateUtil.parseDate(booking.getDateTo());
+
+        DateUtil.validateDateRange(dateFrom, dateTo);
+
+        if (hotelRoom.getAvailableFrom().compareTo(dateFrom) > 0
+                || hotelRoom.getAvailableTo().compareTo(dateTo) < 0) {
+            throw new InvalidHotelException("dates not available for hotel " + booking.getHotelCode());
+        }
+    }
+
+    private void validatePeopleAmount(String roomType, Integer peopleAmount, Integer peopleListSize) throws InvalidBookingException {
+
+        boolean isValidAmountOfPeople;
+
+        switch (roomType) {
+            case "single":
+                isValidAmountOfPeople = peopleAmount == 1;
+                break;
+            case "double":
+                isValidAmountOfPeople = peopleAmount == 2;
+                break;
+            case "triple":
+                isValidAmountOfPeople = peopleAmount == 3;
+                break;
+            case "multiple":
+                isValidAmountOfPeople = peopleAmount > 3 && peopleAmount <= 10;
+                break;
+            default:
+                isValidAmountOfPeople = false;
+        }
+
+        if (!isValidAmountOfPeople || !peopleAmount.equals(peopleListSize)) {
+            throw new InvalidBookingException("Room type does not match amount of people");
+        }
+    }
+
+    private List<HotelDTO> getFilteredHotels(Map<String, String> filters) throws Exception {
+
+        LocalDate fromDate = DateUtil.parseDate(filters.get("dateFrom"));
+        LocalDate toDate = DateUtil.parseDate(filters.get("dateTo"));
+
+        DateUtil.validateDateRange(fromDate, toDate);
+
+        String normalizedDestination = StringUtil.normalizeString(filters.get("destination"));
 
         validateDestination(normalizedDestination);
 
-        return allAvailableHotels.stream()
-                .filter(hotel -> hotel.getAvailableFrom().compareTo(fromDate) <= 0)
-                .filter(hotel -> hotel.getAvailableTo().compareTo(toDate) >= 0)
-                .filter(hotel -> StringHandler.normalizeString(hotel.getCity())
-                        .equals(normalizedDestination))
-                .collect(Collectors.toList());
+        return hotelRepository.filterAvailableHotelsByDateAndDestination(fromDate, toDate, normalizedDestination);
     }
 
-    private void validateDestination(String destination) throws InvalidDestinationException {
+    private void validateDestination(String destination) throws InvalidLocationException {
 
         Optional<HotelDTO> hotelByLocation = hotelRepository.getHotelList().stream()
-                .filter(hotel -> StringHandler.normalizeString(hotel.getCity()).equals(destination))
+                .filter(hotel -> StringUtil.normalizeString(hotel.getCity()).equals(destination))
                 .findAny();
 
         if (hotelByLocation.isEmpty()) {
-            throw new InvalidDestinationException("Destination not found");
+            throw new InvalidLocationException("Destination not found");
         }
     }
 
+    private void validateRequiredFilters(Map<String, String> filters) throws InvalidFilterException {
 
-//    private final AtomicLong ticketIdCounter = new AtomicLong(1);
-
-
-//    @Override
-//    public List<ArticleDTO> getArticles(Map<String, String> allFilters) throws Exception {
-//
-//        List<ArticleDTO> catalog = getUnfilteredArticles();
-//
-//        if (allFilters.size() < 1) {
-//
-//            return catalog;
-//
-//        } else if (allFilters.size() <= 2
-//                || (allFilters.size() == 3 && allFilters.get("order") != null)) {
-//
-//            // Validate value of non-string filters
-//            validateFilters(allFilters);
-//
-//            return filterArticles(catalog, allFilters);
-//
-//        } else {
-//            throw new InvalidFilterException("A maximum of 2 filters can be applied at the same time");
-//        }
-//    }
-//
-//    @Override
-//    public PurchaseResponseDTO PurchaseArticles(Long cartId, PurchaseRequestDTO articles) throws Exception {
-//
-//        List<PurchaseArticleDTO> articleList = articles.getArticles();
-//
-//        long total = 0L;
-//
-//        for (PurchaseArticleDTO article : articleList) {
-//
-//            if (article.getQuantity() < 1) {
-//                throw new InvalidArticleException("Quantity for article with product id " + article.getProductId() + " is invalid");
-//            }
-//
-//            ArticleDTO itemInStock = articleRepository.getArticleById(article.getProductId());
-//
-//            if (itemInStock == null) {
-//                throw new InvalidArticleException("Article with product id " + article.getProductId() + " is invalid");
-//            }
-//
-//            // Validate name and brand for article ID
-//            validateArticle(article, itemInStock);
-//
-//            if (article.getQuantity() > itemInStock.getQuantity()) {
-//                throw new InsufficientStockException("Stock available for article with product id " + itemInStock.getProductId() + " is " + itemInStock.getQuantity());
-//            }
-//
-//            total += (article.getQuantity() * (long) itemInStock.getPrice());
-//        }
-//
-//        if (cartId == null) {
-//            ShoppingCartDTO shoppingCart = new ShoppingCartDTO(shoppingCartIdCounter.getAndIncrement(), total, articleList);
-//            shoppingCartsList.add(shoppingCart);
-//            cartId = shoppingCart.getCartId();
-//
-//        } else {
-//            ShoppingCartDTO shoppingCart = getCartById(cartId);
-//
-//            if (shoppingCart == null)
-//                throw new InvalidShopingCartException("Shopping cart number " + cartId + " not found");
-//
-//            shoppingCart.addItems(articleList, total);
-//            total = shoppingCart.getTotal();
-//        }
-//
-//        // Update catalog stock
-//        for (PurchaseArticleDTO article : articleList) {
-//            articleRepository.subtractStock(article.getProductId(), article.getQuantity());
-//        }
-//
-//        articleRepository.updateDatabase();
-//
-//        TicketDTO ticket = new TicketDTO(ticketIdCounter.getAndIncrement(), articleList, total);
-//        StatusDTO status = new StatusDTO(200, "La solicitud de compra se completó con éxito");
-//
-//        return new PurchaseResponseDTO(cartId, ticket, status);
-//    }
-//
-//    private void validateArticle(PurchaseArticleDTO reqArticle, ArticleDTO catalogArticle) throws InvalidArticleException {
-//
-//        if (!reqArticle.getName().equalsIgnoreCase(catalogArticle.getName())
-//                || !reqArticle.getBrand().equalsIgnoreCase(catalogArticle.getBrand())) {
-//            throw new InvalidArticleException("Invalid article data. Product id: " + reqArticle.getProductId());
-//        }
-//    }
-//
-//    private void validateFilters(Map<String, String> filterList) throws Exception {
-//
-//        for (Map.Entry<String, String> filter : filterList.entrySet()) {
-//
-//            String key = filter.getKey();
-//
-//            if (key.equals("price") || key.equals("prestige") || key.equals("order")) {
-//                try {
-//                    Integer.parseInt(filter.getValue());
-//
-//                } catch (NumberFormatException e) {
-//                    throw new InvalidFilterException(key + " filter accepts only numeric values");
-//                }
-//            }
-//
-//            if (key.equals("freeShipping")
-//                    && !filter.getValue().equals("true")
-//                    && !filter.getValue().equals("false")) {
-//
-//                throw new InvalidFilterException("FreeShipping must be boolean");
-//            }
-//        }
-//    }
-//
-//    private List<ArticleDTO> filterArticles(List<ArticleDTO> catalog, Map<String, String> filters) throws Exception {
-//
-//        for (Map.Entry<String, String> filter : filters.entrySet()) {
-//
-//            String key = filter.getKey();
-//            String value = filter.getValue();
-//
-//            switch (key) {
-//                case "name":
-//                    catalog = filterByName(catalog, value);
-//                    break;
-//                case "category":
-//                    catalog = filterByCategory(catalog, value);
-//                    break;
-//                case "brand":
-//                    catalog = filterByBrand(catalog, value);
-//                    break;
-//                case "price":
-//                    catalog = filterByPrice(catalog, Integer.parseInt(value));
-//                    break;
-//                case "freeShipping":
-//                    catalog = filterByShipping(catalog, value.equals("true"));
-//                    break;
-//                case "prestige":
-//                    catalog = filterByPrestige(catalog, Integer.parseInt(value));
-//                    break;
-//                case "order":
-//                    catalog = sortArticles(catalog, Integer.parseInt(value));
-//                    break;
-//                default:
-//                    throw new InvalidFilterException("Filter '" + key + "' is invalid");
-//            }
-//        }
-//        return catalog;
-//    }
-//
-//    private List<ArticleDTO> filterByName(List<ArticleDTO> catalog, String filter) {
-//
-//        return catalog.stream().filter(item -> item.getName()
-//                .equalsIgnoreCase(filter))
-//                .collect(Collectors.toList());
-//    }
-//
-//    private List<ArticleDTO> filterByCategory(List<ArticleDTO> catalog, String filter) {
-//
-//        return catalog.stream().filter(item -> item.getCategory()
-//                .equalsIgnoreCase(filter))
-//                .collect(Collectors.toList());
-//    }
-//
-//    private List<ArticleDTO> filterByBrand(List<ArticleDTO> catalog, String filter) {
-//
-//        return catalog.stream().filter(item -> item.getBrand()
-//                .equalsIgnoreCase(filter))
-//                .collect(Collectors.toList());
-//    }
-//
-//    private List<ArticleDTO> filterByPrice(List<ArticleDTO> catalog, Integer filter) {
-//
-//        return catalog.stream().filter(item -> item.getPrice()
-//                .equals(filter))
-//                .collect(Collectors.toList());
-//    }
-//
-//    private List<ArticleDTO> filterByShipping(List<ArticleDTO> catalog, Boolean filter) {
-//
-//        return catalog.stream().filter(item -> item.getFreeShipping()
-//                .equals(filter))
-//                .collect(Collectors.toList());
-//    }
-//
-//    private List<ArticleDTO> filterByPrestige(List<ArticleDTO> catalog, Integer filter) {
-//
-//        return catalog.stream().filter(item -> item.getPrestige()
-//                .equals(filter))
-//                .collect(Collectors.toList());
-//    }
-//
-//    private List<ArticleDTO> sortArticles(List<ArticleDTO> catalog, Integer order) throws InvalidFilterException {
-//
-//        switch (order) {
-//            case 0:
-//                return catalog.stream().sorted(Comparator.comparing(ArticleDTO::getName)).collect(Collectors.toList());
-//            case 1:
-//                return catalog.stream().sorted((a, b) -> b.getName().compareToIgnoreCase(a.getName())).collect(Collectors.toList());
-//            case 2:
-//                return catalog.stream().sorted((a, b) -> b.getPrice() - a.getPrice()).collect(Collectors.toList());
-//            case 3:
-//                return catalog.stream().sorted(Comparator.comparingInt(ArticleDTO::getPrice)).collect(Collectors.toList());
-//            default:
-//                throw new InvalidFilterException("Order filter accepted values: 0-3");
-//        }
-//    }
-//
-//    public ShoppingCartDTO getCartById(Long id) {
-//        return shoppingCartsList.stream()
-//                .filter(a -> a.getCartId().equals(id))
-//                .findFirst()
-//                .orElse(null);
-//    }
+        if (filters.get("dateFrom") == null
+                || filters.get("dateTo") == null
+                || filters.get("destination") == null) {
+            throw new InvalidFilterException("Request with filters must include 'dateFrom', 'dateTo' and 'destination'");
+        }
+    }
 }

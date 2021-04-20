@@ -1,7 +1,6 @@
 package com.example.quality.utils;
 
 import com.example.quality.exceptions.InvalidPersonDataException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -9,13 +8,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PersonValidationUtilTest {
 
-    @BeforeEach
-    void setUp() {
-    }
-
     @Test
     @DisplayName("Should not throw invalid email exception")
     void validateEmail() {
+
         String email1 = "mymail_23@email.com";
         String email2 = "mymail@email.com.ar";
         String email3 = "my.mail_23@email.com.co";
@@ -30,6 +26,7 @@ class PersonValidationUtilTest {
     @Test
     @DisplayName("Should throw invalid email exception")
     void validateInvalidEmail() {
+
         String email1 = "mymail_23email.com";
         String email2 = "mymail@email";
         String email3 = "mymai+l_23@email.com.co";
@@ -59,7 +56,6 @@ class PersonValidationUtilTest {
         String dni1 = "1314 345";
         String dni2 = "131.3435";
         String dni3 = "dni";
-
 
         assertThrows(InvalidPersonDataException.class,
                 () -> PersonValidationUtil.validateDni(dni1));
@@ -104,9 +100,5 @@ class PersonValidationUtilTest {
                 () -> PersonValidationUtil.validateName(name4));
         assertThrows(InvalidPersonDataException.class,
                 () -> PersonValidationUtil.validateName(name5));
-    }
-
-    @Test
-    void validatePeopleData() {
     }
 }

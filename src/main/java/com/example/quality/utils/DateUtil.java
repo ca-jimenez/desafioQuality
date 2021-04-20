@@ -24,10 +24,9 @@ public class DateUtil {
     public static LocalDateTime parseDateToLocalDateTime(String date) throws InvalidDateException {
 
         try {
-//            return LocalDateTime.parse(date, formatter);
             LocalDate localDate = LocalDate.parse(date, formatter);
 
-            return LocalDateTime.of(localDate.getYear(), localDate.getMonth(), localDate.getDayOfMonth(), 0,0,0);
+            return LocalDateTime.of(localDate.getYear(), localDate.getMonth(), localDate.getDayOfMonth(), 0, 0, 0);
 
         } catch (Exception e) {
 

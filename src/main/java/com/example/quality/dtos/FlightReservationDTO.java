@@ -20,5 +20,4 @@ public class FlightReservationDTO {
     private String seatType;
     private List<PersonDTO> people;
     private PaymentMethodDTO paymentMethod;
-
 }

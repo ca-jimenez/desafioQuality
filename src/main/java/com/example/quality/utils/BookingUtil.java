@@ -43,5 +43,4 @@ public class BookingUtil {
 
         return total + (total * interest / 100);
     }
-
 }

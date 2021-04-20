@@ -1,9 +1,6 @@
 package com.example.quality.utils;
 
 import com.example.quality.exceptions.InvalidDateException;
-import com.example.quality.utils.DateUtil;
-import org.apache.tomcat.jni.Local;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -12,11 +9,7 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DateHandlerTest {
-
-    @BeforeEach
-    void setUp() {
-    }
+class DateUtilTest {
 
     @Test
     @DisplayName("Should Return Parsed Date")
@@ -26,14 +19,13 @@ class DateHandlerTest {
 
     @Test
     @DisplayName("Should Throw Invalid Date Exception")
-    void parseInvalidDate() throws InvalidDateException {
+    void parseInvalidDate() {
 
         String date = "02/15/2020";
 
         InvalidDateException exception = assertThrows(InvalidDateException.class,
                 () -> DateUtil.parseDate(date),
                 "Invalid Date Exception expected but not thrown");
-
 
         assertEquals("Invalid date format '" + date + "'. Accepted format: DD/MM/YYYY", exception.getMessage());
     }
@@ -42,14 +34,14 @@ class DateHandlerTest {
     @DisplayName("Should Return Parsed DateTime")
     void parseDateTime() throws InvalidDateException {
 
-        LocalDateTime expectedDate = LocalDateTime.of(2020, 01, 25, 0,0,0);
+        LocalDateTime expectedDate = LocalDateTime.of(2020, 01, 25, 0, 0, 0);
 
         assertEquals(expectedDate, DateUtil.parseDateToLocalDateTime("25/01/2020"));
     }
 
     @Test
     @DisplayName("Should Return formatted Date String")
-    void formatDate() throws InvalidDateException {
+    void formatDate() {
 
         LocalDate date = LocalDate.parse("2020-01-25");
         String expectedString = "25/01/2020";
@@ -59,7 +51,7 @@ class DateHandlerTest {
 
     @Test
     @DisplayName("Should not throw invalid date range exception")
-    void validateRange() throws InvalidDateException {
+    void validateRange() {
 
         LocalDate date1 = LocalDate.parse("2020-01-25");
         LocalDate date2 = LocalDate.parse("2020-01-28");
@@ -69,7 +61,7 @@ class DateHandlerTest {
 
     @Test
     @DisplayName("Should throw invalid date range exception")
-    void validateInvalidRange() throws InvalidDateException {
+    void validateInvalidRange() {
 
         LocalDate date1 = LocalDate.parse("2020-01-25");
         LocalDate date2 = LocalDate.parse("2020-01-24");

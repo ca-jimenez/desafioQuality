@@ -65,8 +65,7 @@ public class HotelRepositoryImpl implements HotelRepository {
         updateDatabase();
     }
 
-    //Overwrite csv file with updated catalog data
-
+    //Overwrite csv file with updated data
     private void updateDatabase() {
 
         String recordAsCsv = hotelList.stream()

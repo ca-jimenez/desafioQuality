@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -46,9 +45,6 @@ class StringUtilTest {
     @DisplayName("Should Return csv hotel row")
     void hotelCsvRow() throws IOException {
 
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        objectMapper.registerModule(new JavaTimeModule());
-
         String expected = "BH-0002,Hotel Bristol 2,Buenos Aires,Double,$7200,12/02/2021,17/04/2021,NO";
 
         HotelDTO hotel = objectMapper.readValue(
@@ -62,9 +58,6 @@ class StringUtilTest {
     @Test
     @DisplayName("Should Return csv flight row")
     void flightCsvRow() throws IOException {
-
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        objectMapper.registerModule(new JavaTimeModule());
 
         String expected = "BAPI-1235,Buenos Aires,Puerto Iguazú,Economy,$6500,10/02/2021,15/02/2021,5";
 

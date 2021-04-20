@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-//@RequestMapping("/api/v1")
 public class HotelController {
 
     private final HotelService hotelService;
@@ -36,6 +35,3 @@ public class HotelController {
         return new ResponseEntity<>(hotelService.bookARoom(request), HttpStatus.OK);
     }
 }
-
-//ToDo readme + docs + tests + comments
-// validate json format

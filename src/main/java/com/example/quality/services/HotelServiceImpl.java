@@ -24,21 +24,10 @@ public class HotelServiceImpl implements HotelService {
 
     private final HotelRepository hotelRepository;
 
-//    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    //ToDo pasar filtros a repo?
-    //ToDo contemplate repository empty list
-
     @Autowired
     public HotelServiceImpl(HotelRepository hotelRepository) {
         this.hotelRepository = hotelRepository;
     }
-
-//    @Override
-//    public List<HotelDTO> getAllAvailableHotels() {
-//        return hotelRepository.getHotelList().stream()
-//                .filter(hotel -> hotel.getReserved().equals(false))
-//                .collect(Collectors.toList());
-//    }
 
     @Override
     public List<HotelDTO> getAvailableHotels(Map<String, String> params) throws Exception {
@@ -89,22 +78,16 @@ public class HotelServiceImpl implements HotelService {
 
     private Double calculateHotelBaseAmount(HotelDTO hotelRoom, BookingDTO booking) throws InvalidDateException {
 
-//        HotelDTO hotelRoom = hotelRepository.getHotelByCode(booking.getHotelCode());
-
         LocalDateTime dateFrom = DateUtil.parseDateToLocalDateTime(booking.getDateFrom());
         LocalDateTime dateTo = DateUtil.parseDateToLocalDateTime(booking.getDateTo());
 
         long days = Duration.between(dateFrom, dateTo).toDays();
-
-//        System.out.println("days = " + days);
 
         return hotelRoom.getPricePerNight() * (double) days;
     }
 
 
     private void validateHotel(HotelDTO hotelRoom, BookingDTO booking) throws Exception {
-
-//        HotelDTO hotelRoom = hotelRepository.getHotelByCode(booking.getHotelCode());
 
         if (hotelRoom == null) {
             throw new InvalidHotelException("Hotel with code " + booking.getHotelCode() + " not found");

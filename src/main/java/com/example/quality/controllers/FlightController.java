@@ -1,9 +1,7 @@
 package com.example.quality.controllers;
 
-
 import com.example.quality.dtos.*;
 import com.example.quality.services.FlightService;
-import com.example.quality.services.HotelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +33,3 @@ public class FlightController {
         return new ResponseEntity<>(flightService.bookAFlight(request), HttpStatus.OK);
     }
 }
-
-//ToDo readme + docs + tests + comments
-// validate json format

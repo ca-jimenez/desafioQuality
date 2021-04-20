@@ -2,7 +2,6 @@ package com.example.quality.repositories;
 
 
 import com.example.quality.dtos.FlightDTO;
-import com.example.quality.dtos.HotelDTO;
 import com.example.quality.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -70,8 +69,7 @@ public class FlightRepositoryImpl implements FlightRepository {
         updateDatabase();
     }
 
-    //Overwrite csv file with updated catalog data
-
+    //Overwrite csv file with updated data
     private void updateDatabase() {
 
         String recordAsCsv = flightList.stream()

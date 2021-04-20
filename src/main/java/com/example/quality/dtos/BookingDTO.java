@@ -20,5 +20,4 @@ public class BookingDTO {
     private String roomType;
     private List<PersonDTO> people;
     private PaymentMethodDTO paymentMethod;
-
 }

@@ -93,7 +93,6 @@ class BookingUtilTest {
 
         assertEquals("Accepted payment dues values for credit are 1-6",
                 exception.getMessage());
-
     }
 
     @Test

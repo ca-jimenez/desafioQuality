@@ -11,5 +11,4 @@ public class FlightReservationRequestDTO {
 
     private String username;
     private FlightReservationDTO flightReservation;
-//    private PaymentMethodDTO paymentMethod;
 }

@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,8 +21,6 @@ import java.util.Optional;
 public class FlightServiceImpl implements FlightService {
 
     private final FlightRepository flightRepository;
-
-    //ToDo contemplate repository empty list
 
     @Autowired
     public FlightServiceImpl(FlightRepository flightRepository) {
@@ -78,18 +75,13 @@ public class FlightServiceImpl implements FlightService {
     }
 
 
-
     private Double calculateFlightBaseAmount(FlightDTO flight, FlightReservationDTO reservation) {
-
-//        FlightDTO flight = flightRepository.getFlightByCode(reservation.getFlightNumber());
 
         return flight.getPricePerPerson() * (double) reservation.getSeats();
     }
 
 
     private void validateFlight(FlightDTO flight, FlightReservationDTO reservation) throws Exception {
-
-//        FlightDTO flight = flightRepository.getFlightByCode(reservation.getFlightNumber());
 
         if (flight == null) {
             throw new InvalidFlightException("Flight with code " + reservation.getFlightNumber() + " not found");
@@ -119,7 +111,6 @@ public class FlightServiceImpl implements FlightService {
 
         DateUtil.validateDateRange(dateFrom, dateTo);
 
-        //todo dates must match?
         if (flight.getDateFrom().compareTo(dateFrom) > 0
                 || flight.getDateTo().compareTo(dateTo) < 0) {
             throw new InvalidFlightException("dates not available for flight " + reservation.getFlightNumber());

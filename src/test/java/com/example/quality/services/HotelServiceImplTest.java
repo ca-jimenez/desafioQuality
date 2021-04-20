@@ -155,7 +155,6 @@ class HotelServiceImplTest {
 
         Map<String, String> filters1 = new HashMap<>();
         Map<String, String> filters2 = new HashMap<>();
-        Map<String, String> filters3 = new HashMap<>();
 
         String fromDate = "10/02/2021";
         String toDate = "19/02/2021";
@@ -165,14 +164,9 @@ class HotelServiceImplTest {
         filters1.put("dateFrom", fromDate);
         filters1.put("dateTo", toDate);
 
-        filters2.put("dateFrom", fromDate);
         filters2.put("dateTo", toDate);
         filters2.put("destination", destination);
         filters2.put("invalidFilter", invalidFilter);
-
-        filters3.put("dateTo", toDate);
-        filters3.put("destination", destination);
-        filters3.put("invalidFilter", invalidFilter);
 
         InvalidFilterException missingFilterE = assertThrows(InvalidFilterException.class,
                 () -> hotelService.getAvailableHotels(filters1),
@@ -180,14 +174,8 @@ class HotelServiceImplTest {
 
         assertEquals("Accepted filters are 'dateFrom', 'dateTo' and 'destination'", missingFilterE.getMessage());
 
-        InvalidFilterException extraFilterE = assertThrows(InvalidFilterException.class,
-                () -> hotelService.getAvailableHotels(filters2),
-                "Invalid Filter Exception expected but not thrown");
-
-        assertEquals("Accepted filters are 'dateFrom', 'dateTo' and 'destination'", extraFilterE.getMessage());
-
         InvalidFilterException invalidFilterE = assertThrows(InvalidFilterException.class,
-                () -> hotelService.getAvailableHotels(filters3),
+                () -> hotelService.getAvailableHotels(filters2),
                 "Invalid Filter Exception expected but not thrown");
 
         assertEquals("Request with filters must include 'dateFrom', 'dateTo' and 'destination'", invalidFilterE.getMessage());

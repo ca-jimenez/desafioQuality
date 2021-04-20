@@ -37,6 +37,8 @@ public class FlightRepositoryImpl implements FlightRepository {
 
     @Override
     public List<FlightDTO> getAvailableFlightsList() {
+
+        // return flights with availableSeats greater than 0
         return flightList.stream()
                 .filter(flight -> flight.getAvailableSeats() > 0)
                 .collect(Collectors.toList());
@@ -44,6 +46,8 @@ public class FlightRepositoryImpl implements FlightRepository {
 
     @Override
     public FlightDTO getFlightByCode(String flightNumber) {
+
+        //search flight by flightNumber
         return flightList.stream()
                 .filter(flight -> flight.getFlightNumber().equalsIgnoreCase(flightNumber))
                 .findFirst().orElse(null);
@@ -51,6 +55,8 @@ public class FlightRepositoryImpl implements FlightRepository {
 
     @Override
     public List<FlightDTO> filterAvailableFlightsByDateAndLocation(LocalDate fromDate, LocalDate toDate, String origin, String destination) {
+
+        // return filtered flights by date, origin and destination with availableSeats greater than 0
         return getAvailableFlightsList().stream()
                 .filter(flight -> flight.getDateFrom().compareTo(fromDate) <= 0
                         && flight.getDateTo().compareTo(toDate) >= 0)
@@ -62,16 +68,20 @@ public class FlightRepositoryImpl implements FlightRepository {
     @Override
     public void reserveFlight(String flightNumber, Integer seats) {
 
+        // get available seats for flight
         Integer availableSeats = getFlightByCode(flightNumber).getAvailableSeats();
 
+        // update flight availableSeats in memory
         getFlightByCode(flightNumber).setAvailableSeats(availableSeats - seats);
 
+        //replace csv file contents
         updateDatabase();
     }
 
     //Overwrite csv file with updated data
     private void updateDatabase() {
 
+        // map flight list contents to cvs strings
         String recordAsCsv = flightList.stream()
                 .map(StringUtil::flightToCsvRow)
                 .collect(Collectors.joining(System.getProperty("line.separator")));
@@ -79,7 +89,6 @@ public class FlightRepositoryImpl implements FlightRepository {
         try {
             // File path
             FileWriter writer = new FileWriter("src/main/resources/flights.csv");
-
 
             // Add headers
             writer.append("flightNumber,origin,destination,seatType,pricePerPerson,dateFrom,dateTo,availableSeats\n");
@@ -110,10 +119,12 @@ public class FlightRepositoryImpl implements FlightRepository {
 
             while ((row = reader.readLine()) != null) {
 
+                //get data from line
                 String[] data = row.split(",");
 
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+                // assign data to new object
                 String flightNumber = data[0];
                 String origin = data[1];
                 String destination = data[2];
@@ -126,7 +137,6 @@ public class FlightRepositoryImpl implements FlightRepository {
                 LocalDate toDate = LocalDate.parse(data[6], formatter);
 
                 Integer availableSeats = Integer.parseInt(data[7]);
-
 
                 records.add(new FlightDTO(idCounter.getAndIncrement(), flightNumber, origin, destination, seatType, price, fromDate, toDate, availableSeats));
             }

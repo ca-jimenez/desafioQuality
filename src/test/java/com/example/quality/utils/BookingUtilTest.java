@@ -100,8 +100,8 @@ class BookingUtilTest {
     void calculateTotalWithInterests() {
         Double amount = 10085.0;
         Integer interest = 5;
-
         Double total = 10589.25;
+
         assertEquals(total, BookingUtil.calculateTotalWithInterests(amount, interest));
     }
 }

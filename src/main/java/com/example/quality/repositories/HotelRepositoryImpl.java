@@ -35,6 +35,8 @@ public class HotelRepositoryImpl implements HotelRepository {
 
     @Override
     public List<HotelDTO> getAvailableHotelsList() {
+
+        // return hotels with reserved = false
         return hotelList.stream()
                 .filter(hotel -> hotel.getReserved().equals(false))
                 .collect(Collectors.toList());
@@ -42,6 +44,8 @@ public class HotelRepositoryImpl implements HotelRepository {
 
     @Override
     public HotelDTO getHotelByCode(String hotelCode) {
+
+        // get hotel by hotelCode
         return hotelList.stream()
                 .filter(hotel -> hotel.getCode().equalsIgnoreCase(hotelCode))
                 .findFirst().orElse(null);
@@ -49,6 +53,8 @@ public class HotelRepositoryImpl implements HotelRepository {
 
     @Override
     public List<HotelDTO> filterAvailableHotelsByDateAndDestination(LocalDate fromDate, LocalDate toDate, String destination) {
+
+        // return filtered hotels by date and destination with reserved = false
         return getAvailableHotelsList().stream()
                 .filter(hotel -> hotel.getAvailableFrom().compareTo(fromDate) <= 0
                         && hotel.getAvailableTo().compareTo(toDate) >= 0)
@@ -60,14 +66,17 @@ public class HotelRepositoryImpl implements HotelRepository {
     @Override
     public void reserveHotel(String hotelCode) {
 
+        // update hotel in memory
         getHotelByCode(hotelCode).setReserved(true);
 
+        // rewrite csv file
         updateDatabase();
     }
 
     //Overwrite csv file with updated data
     private void updateDatabase() {
 
+        // map hotel list contents to csv string
         String recordAsCsv = hotelList.stream()
                 .map(StringUtil::hotelToCsvRow)
                 .collect(Collectors.joining(System.getProperty("line.separator")));
@@ -104,10 +113,13 @@ public class HotelRepositoryImpl implements HotelRepository {
             reader.readLine();
 
             while ((row = reader.readLine()) != null) {
+
+                // get data from line
                 String[] data = row.split(",");
 
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+                // assign data to object
                 String code = data[0];
                 String name = data[1];
                 String city = data[2];

@@ -15,12 +15,14 @@ public class BookingUtil {
         switch (type) {
 
             case "debit":
+                //validate debit dues has to be 1
                 if (dues != 1) {
                     throw new InvalidPaymentException("Accepted payment dues value for debit is 1");
                 }
                 break;
 
             case "credit":
+                // assign interest rate according to number of dues
                 if (dues == 1) {
                     interest = 0;
                 } else if (dues > 1 && dues <= 3) {

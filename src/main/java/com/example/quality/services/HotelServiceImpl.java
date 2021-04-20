@@ -32,14 +32,16 @@ public class HotelServiceImpl implements HotelService {
     @Override
     public List<HotelDTO> getAvailableHotels(Map<String, String> params) throws Exception {
 
+        // Get hotels with reserved = false
         List<HotelDTO> allAvailableHotels = hotelRepository.getAvailableHotelsList();
 
         if (params.size() < 1) {
-
+            // Return hotel list
             return allAvailableHotels;
 
         } else if (params.size() == 3) {
 
+            // validate filters and get filtered hotels
             validateRequiredFilters(params);
             return getFilteredHotels(params);
 
@@ -51,18 +53,25 @@ public class HotelServiceImpl implements HotelService {
     @Override
     public BookingResponseDTO bookARoom(BookingRequestDTO request) throws Exception {
 
+        // validate username is valid email
         PersonValidationUtil.validateEmail(request.getUsername());
 
         BookingDTO booking = request.getBooking();
+
+        // find requested hotel by hotelCode
         HotelDTO hotelRoom = hotelRepository.getHotelByCode(booking.getHotelCode());
 
+        //validate booking contents
         validateHotel(hotelRoom, booking);
         validatePeopleAmount(booking.getRoomType().toLowerCase(), booking.getPeopleAmount(), booking.getPeople().size());
         PersonValidationUtil.validatePeopleData(booking.getPeople());
+
+        // calculate price, interests and total
         Double amount = calculateHotelBaseAmount(hotelRoom, booking);
         Integer interest = BookingUtil.getInterestPercentage(booking.getPaymentMethod());
         Double amountWithInterests = BookingUtil.calculateTotalWithInterests(amount, interest);
 
+        // save to database
         hotelRepository.reserveHotel(booking.getHotelCode());
 
         return new BookingResponseDTO(
@@ -78,9 +87,11 @@ public class HotelServiceImpl implements HotelService {
 
     private Double calculateHotelBaseAmount(HotelDTO hotelRoom, BookingDTO booking) throws InvalidDateException {
 
+        // parse dates to LocalDateTime to be able to calculate period
         LocalDateTime dateFrom = DateUtil.parseDateToLocalDateTime(booking.getDateFrom());
         LocalDateTime dateTo = DateUtil.parseDateToLocalDateTime(booking.getDateTo());
 
+        // calculate number of nights
         long days = Duration.between(dateFrom, dateTo).toDays();
 
         return hotelRoom.getPricePerNight() * (double) days;
@@ -89,29 +100,37 @@ public class HotelServiceImpl implements HotelService {
 
     private void validateHotel(HotelDTO hotelRoom, BookingDTO booking) throws Exception {
 
+        // validate hotel exists
         if (hotelRoom == null) {
             throw new InvalidHotelException("Hotel with code " + booking.getHotelCode() + " not found");
         }
 
+        // validate hotel is available
         if (hotelRoom.getReserved()) {
             throw new InvalidHotelException("Hotel with code " + booking.getHotelCode() + " is not available");
         }
 
+        // validate room type matches
         if (!hotelRoom.getRoomType().equalsIgnoreCase(booking.getRoomType())) {
             throw new InvalidHotelException("Invalid room type for hotel " + booking.getHotelCode());
         }
 
+        // replace accents and Uppercase characters
         String normalizedDestination = StringUtil.normalizeString(booking.getDestination());
 
+        // validate destination matches
         if (!StringUtil.normalizeString(hotelRoom.getCity()).equals(normalizedDestination)) {
             throw new InvalidHotelException("Invalid destination for hotel " + booking.getHotelCode());
         }
 
+        // parse and validate date strings are valid dates
         LocalDate dateFrom = DateUtil.parseDate(booking.getDateFrom());
         LocalDate dateTo = DateUtil.parseDate(booking.getDateTo());
 
+        // validate dates don't overlap
         DateUtil.validateDateRange(dateFrom, dateTo);
 
+        // validate hotel is available for requested dates
         if (hotelRoom.getAvailableFrom().compareTo(dateFrom) > 0
                 || hotelRoom.getAvailableTo().compareTo(dateTo) < 0) {
             throw new InvalidHotelException("dates not available for hotel " + booking.getHotelCode());
@@ -139,6 +158,7 @@ public class HotelServiceImpl implements HotelService {
                 isValidAmountOfPeople = false;
         }
 
+        // validate amount of people matches room type and people list size
         if (!isValidAmountOfPeople || !peopleAmount.equals(peopleListSize)) {
             throw new InvalidBookingException("Room type does not match amount of people");
         }
@@ -146,13 +166,17 @@ public class HotelServiceImpl implements HotelService {
 
     private List<HotelDTO> getFilteredHotels(Map<String, String> filters) throws Exception {
 
+        // parse and validate date strings
         LocalDate fromDate = DateUtil.parseDate(filters.get("dateFrom"));
         LocalDate toDate = DateUtil.parseDate(filters.get("dateTo"));
 
+        // validate dates don't overlap
         DateUtil.validateDateRange(fromDate, toDate);
 
+        // replace accents and uppercase characters
         String normalizedDestination = StringUtil.normalizeString(filters.get("destination"));
 
+        //validate destination exists
         validateDestination(normalizedDestination);
 
         return hotelRepository.filterAvailableHotelsByDateAndDestination(fromDate, toDate, normalizedDestination);
@@ -160,6 +184,7 @@ public class HotelServiceImpl implements HotelService {
 
     private void validateDestination(String destination) throws InvalidLocationException {
 
+        // search destination in complete hotel list (reserved false and true)
         Optional<HotelDTO> hotelByLocation = hotelRepository.getHotelList().stream()
                 .filter(hotel -> StringUtil.normalizeString(hotel.getCity()).equals(destination))
                 .findAny();
@@ -171,6 +196,7 @@ public class HotelServiceImpl implements HotelService {
 
     private void validateRequiredFilters(Map<String, String> filters) throws InvalidFilterException {
 
+        // validate that the three required filters are sent
         if (filters.get("dateFrom") == null
                 || filters.get("dateTo") == null
                 || filters.get("destination") == null) {

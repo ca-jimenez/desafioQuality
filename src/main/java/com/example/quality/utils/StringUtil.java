@@ -8,6 +8,7 @@ public class StringUtil {
 
     public static String normalizeString(String text) {
 
+        //replace accents and uppercase characters
         return text.toLowerCase().toLowerCase()
                 .replace("á", "a")
                 .replace("é", "e")
@@ -17,11 +18,14 @@ public class StringUtil {
     }
 
     public static String formatPrice(Integer price) {
+
+        //add $ sign required for csv file
         return "$" + price;
     }
 
     public static String hotelToCsvRow(HotelDTO hotel) {
 
+        // parse HotelDTO to CSV line string
         return String.join(",",
                 hotel.getCode(),
                 hotel.getName(),
@@ -36,6 +40,7 @@ public class StringUtil {
 
     public static String flightToCsvRow(FlightDTO flight) {
 
+        // parse FlightDTO to CSV line string
         return String.join(",",
                 flight.getFlightNumber(),
                 flight.getOrigin(),

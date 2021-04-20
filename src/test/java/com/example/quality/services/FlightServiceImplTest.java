@@ -6,7 +6,6 @@ import com.example.quality.exceptions.InvalidFlightException;
 import com.example.quality.exceptions.InvalidLocationException;
 import com.example.quality.repositories.FlightRepository;
 import com.example.quality.utils.DateUtil;
-import com.example.quality.utils.StringUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -42,7 +41,6 @@ class FlightServiceImplTest {
     private FlightRepository flightRepository;
 
     private static MockedStatic<DateUtil> dateUtil;
-    private static MockedStatic<StringUtil> stringUtil;
 
     @BeforeEach
     void setUp() throws IOException {

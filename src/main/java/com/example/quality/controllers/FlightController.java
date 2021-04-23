@@ -21,7 +21,7 @@ public class FlightController {
     }
 
 
-    @GetMapping("flights")
+    @GetMapping("/flights")
     public ResponseEntity<List<FlightDTO>> getFlights(@RequestParam Map<String, String> params) throws Exception {
 
         return new ResponseEntity<>(flightService.getAvailableFlights(params), HttpStatus.OK);
